@@ -9,16 +9,17 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #f7f3ef;
-    --board-bg: #d9cfc6;
-    --cell-bg: #e8e0d8;
-    --text-dark: #3a3028;
-    --text-mid: #7a6e65;
-    --accent: #e07a5f;
+    --bg:           #f7f3ef;
+    --board-bg:     #d9cfc6;
+    --cell-bg:      #e8e0d8;
+    --text-dark:    #3a3028;
+    --text-mid:     #7a6e65;
+    --accent:       #e07a5f;
     --radius-board: 18px;
-    --radius-tile: 12px;
-    --gap: 12px;
-    --tile-size: min(calc((min(96vw, 480px) - 5 * 12px) / 4), 100px);
+    --radius-tile:  12px;
+    --gap:          12px;
+    /* tile size computed once via JS and written as inline var */
+    --tile-size:    80px;
   }
 
   body {
@@ -52,11 +53,7 @@
     line-height: 1;
   }
 
-  .scores-wrap {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
+  .scores-wrap { display: flex; gap: 10px; align-items: center; }
 
   .score-box {
     background: var(--board-bg);
@@ -79,7 +76,7 @@
     line-height: 1.2;
   }
 
-  /* ── Controls row ── */
+  /* ── Controls ── */
   .controls {
     width: min(96vw, 480px);
     display: flex;
@@ -87,12 +84,7 @@
     justify-content: space-between;
     margin-bottom: 16px;
   }
-
-  .tagline {
-    font-size: 0.82rem;
-    color: var(--text-mid);
-    font-weight: 600;
-  }
+  .tagline { font-size: 0.82rem; color: var(--text-mid); font-weight: 600; }
 
   .btn-new {
     background: var(--accent);
@@ -107,7 +99,7 @@
     transition: transform 0.1s, opacity 0.1s;
     letter-spacing: 0.02em;
   }
-  .btn-new:hover { opacity: 0.88; }
+  .btn-new:hover  { opacity: 0.88; }
   .btn-new:active { transform: scale(0.96); }
 
   /* ── Board ── */
@@ -122,15 +114,15 @@
     padding: var(--gap);
     display: grid;
     grid-template-columns: repeat(4, var(--tile-size));
-    grid-template-rows: repeat(4, var(--tile-size));
+    grid-template-rows:    repeat(4, var(--tile-size));
     gap: var(--gap);
-    box-shadow: 0 8px 32px rgba(58,48,40,0.13), 0 2px 8px rgba(58,48,40,0.08);
+    box-shadow: 0 8px 32px rgba(58,48,40,.13), 0 2px 8px rgba(58,48,40,.08);
     width: fit-content;
     margin: 0 auto;
   }
 
   .cell {
-    width: var(--tile-size);
+    width:  var(--tile-size);
     height: var(--tile-size);
     background: var(--cell-bg);
     border-radius: var(--radius-tile);
@@ -145,21 +137,29 @@
 
   .tile {
     position: absolute;
-    width: var(--tile-size);
+    width:  var(--tile-size);
     height: var(--tile-size);
     border-radius: var(--radius-tile);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    transition: left 0.12s ease, top 0.12s ease;
+    /* transitions handled via JS-assigned inline transition */
     will-change: left, top;
     z-index: 2;
+    font-size: calc(var(--tile-size) * 0.38);
   }
 
+  /* font-size scaling by digit count */
+  .tile.fs-3 { font-size: calc(var(--tile-size) * 0.33); }  /* 128–512   */
+  .tile.fs-4 { font-size: calc(var(--tile-size) * 0.27); }  /* 1024–9999 */
+  .tile.fs-5 { font-size: calc(var(--tile-size) * 0.22); }  /* 10000+    */
+
+  /* pop-in for new tiles */
   .tile.new-tile {
     animation: popIn 0.18s cubic-bezier(0.34,1.56,0.64,1) both;
   }
+  /* bounce for merged tiles */
   .tile.merge-tile {
     animation: mergePop 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
     z-index: 3;
@@ -170,31 +170,26 @@
     to   { transform: scale(1); opacity: 1; }
   }
   @keyframes mergePop {
-    0%   { transform: scale(1); }
+    0%   { transform: scale(1);    }
     40%  { transform: scale(1.18); }
     70%  { transform: scale(0.95); }
-    100% { transform: scale(1); }
+    100% { transform: scale(1);    }
   }
 
-  /* tile colours */
+  /* ── Tile colours ── */
   .t2    { background:#f9d7e0; color:#5c3d45; }
   .t4    { background:#ddd6f7; color:#3d3760; }
   .t8    { background:#fddccc; color:#6b3a25; }
   .t16   { background:#f4a08a; color:#5c2010; }
-  .t32   { background:#f2845a; color:#fff; }
+  .t32   { background:#f2845a; color:#fff;    }
   .t64   { background:#f5c842; color:#5c3d00; }
-  .t128  { background:#7ecba1; color:#fff; }
-  .t256  { background:#6dbfea; color:#fff; }
-  .t512  { background:#9d74d4; color:#fff; }
-  .t1024 { background:#d4956a; color:#fff; }
-  .t2048 { background:#f0c040; color:#fff; box-shadow: 0 0 22px 4px rgba(240,192,64,0.45); }
-  .t-high{ background:#3a3028; color:#fff; }
-
-  /* font sizes inside tiles */
-  .tile { font-size: calc(var(--tile-size) * 0.38); }
-  .tile[data-v="128"],.tile[data-v="256"],.tile[data-v="512"] { font-size: calc(var(--tile-size) * 0.33); }
-  .tile[data-v="1024"],.tile[data-v="2048"] { font-size: calc(var(--tile-size) * 0.27); }
-  .tile[data-v-big] { font-size: calc(var(--tile-size) * 0.22); }
+  .t128  { background:#7ecba1; color:#fff;    }
+  .t256  { background:#6dbfea; color:#fff;    }
+  .t512  { background:#9d74d4; color:#fff;    }
+  .t1024 { background:#d4956a; color:#fff;    }
+  .t2048 { background:#f0c040; color:#fff;
+           box-shadow: 0 0 22px 4px rgba(240,192,64,.45); }
+  .t-high{ background:#3a3028; color:#fff;    }
 
   /* ── Overlays ── */
   .overlay {
@@ -202,7 +197,7 @@
     position: absolute;
     inset: 0;
     border-radius: var(--radius-board);
-    background: rgba(247,243,239,0.82);
+    background: rgba(247,243,239,.82);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     flex-direction: column;
@@ -214,48 +209,31 @@
   }
   .overlay.show { display: flex; }
 
-  @keyframes fadeIn {
-    from { opacity:0; } to { opacity:1; }
-  }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
-  .overlay h2 {
-    font-size: 2rem;
-    font-weight: 900;
-    color: var(--text-dark);
-  }
-  .overlay p {
-    font-size: 0.9rem;
-    color: var(--text-mid);
-    font-weight: 600;
-  }
-  .overlay .btn-new {
-    margin-top: 6px;
-    padding: 10px 28px;
-    font-size: 1rem;
-  }
+  .overlay h2 { font-size: 2rem; font-weight: 900; color: var(--text-dark); }
+  .overlay p  { font-size: 0.9rem; color: var(--text-mid); font-weight: 600; }
+  .overlay .btn-new { margin-top: 6px; padding: 10px 28px; font-size: 1rem; }
 
   /* confetti canvas */
   #confetti-canvas {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     border-radius: var(--radius-board);
     pointer-events: none;
     z-index: 19;
   }
 
-  /* ── Score bump animation ── */
-  .score-bump {
-    animation: scoreBump 0.22s cubic-bezier(0.34,1.56,0.64,1);
-  }
+  /* score bump */
+  .score-bump { animation: scoreBump 0.22s cubic-bezier(0.34,1.56,0.64,1); }
   @keyframes scoreBump {
-    0%   { transform: scale(1); }
+    0%   { transform: scale(1);    }
     50%  { transform: scale(1.22); }
-    100% { transform: scale(1); }
+    100% { transform: scale(1);    }
   }
 
-  /* ── Keyboard hint ── */
+  /* ── Hint ── */
   .hint {
     margin-top: 22px;
     width: min(96vw, 480px);
@@ -289,8 +267,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tile { transition: none; }
-    .tile.new-tile, .tile.merge-tile { animation: none; }
+    .tile { transition: none !important; animation: none !important; }
   }
 </style>
 </head>
@@ -328,102 +305,145 @@
   </div>
 
   <div class="overlay" id="overlay-over">
-    <h2>Game Over</h2>
+    <h2>Game Over 😢</h2>
     <p>No moves left. Try again?</p>
     <button class="btn-new" id="btn-restart-over">New Game</button>
   </div>
 </div>
 
 <div class="hint desktop-hint">
-  <div>Use keyboard or on-screen swipe to move tiles.</div>
+  <div>Use keyboard or swipe to move tiles.</div>
   <div class="keys">
-    <span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span>
+    <span class="key">↑</span><span class="key">↓</span>
+    <span class="key">←</span><span class="key">→</span>
     &nbsp;or&nbsp;
-    <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
+    <span class="key">W</span><span class="key">A</span>
+    <span class="key">S</span><span class="key">D</span>
   </div>
 </div>
 <div class="hint mobile-hint">Swipe in any direction to move tiles.</div>
 
 <script>
 (() => {
-  /* ── Constants ── */
-  const SIZE = 4;
-  const GAP = 12; // matches --gap CSS
+  'use strict';
 
-  /* ── State ── */
-  let board = [];       // 4×4 array of values (0 = empty)
-  let tileEls = {};     // id → DOM element
-  let nextId = 1;
-  let tileGrid = [];    // 4×4 array of {id, value} objects
-  let score = 0;
-  let best = +localStorage.getItem('2048-best') || 0;
-  let won = false;
-  let over = false;
-  let moving = false;
+  /* ─────────────────────────────────────────────
+     CONSTANTS
+  ───────────────────────────────────────────── */
+  const SIZE       = 4;
+  const TRANSITION = 110; // ms — slide animation duration
 
-  /* ── DOM refs ── */
-  const boardEl      = document.getElementById('board');
-  const tilesLayer   = document.getElementById('tiles-layer');
-  const scoreEl      = document.getElementById('score');
-  const bestEl       = document.getElementById('best');
-  const overlayWin   = document.getElementById('overlay-win');
-  const overlayOver  = document.getElementById('overlay-over');
-  const boardWrap    = document.getElementById('board-wrap');
-  const confCanvas   = document.getElementById('confetti-canvas');
+  /* ─────────────────────────────────────────────
+     DOM REFS
+  ───────────────────────────────────────────── */
+  const boardEl     = document.getElementById('board');
+  const tilesLayer  = document.getElementById('tiles-layer');
+  const scoreEl     = document.getElementById('score');
+  const bestEl      = document.getElementById('best');
+  const overlayWin  = document.getElementById('overlay-win');
+  const overlayOver = document.getElementById('overlay-over');
+  const boardWrap   = document.getElementById('board-wrap');
+  const confCanvas  = document.getElementById('confetti-canvas');
+  const confCtx     = confCanvas.getContext('2d');
 
-  /* ── Build empty cell grid ── */
+  /* ─────────────────────────────────────────────
+     STATE
+  ───────────────────────────────────────────── */
+  let tileGrid = [];     // SIZE×SIZE of {id, value} | null
+  let tileEls  = {};     // id → DOM element
+  let nextId   = 1;
+  let score    = 0;
+  let best     = +localStorage.getItem('2048-best') || 0;
+  let won      = false;
+  let over     = false;
+  let moving   = false;
+
+  /* ─────────────────────────────────────────────
+     TILE-SIZE & POSITIONING
+     Read gap from CSS once; compute tileSize from
+     the actual rendered cell — never hardcode.
+  ───────────────────────────────────────────── */
+  // Read --gap from CSS so JS never hardcodes 12
+  function cssGap() {
+    return parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--gap'),
+      10
+    );
+  }
+
+  // Returns the live pixel side-length of one tile cell
+  function tileSize() {
+    const cell = boardEl.querySelector('.cell');
+    return cell ? cell.offsetWidth : 80;
+  }
+
+  // Pixel offsets of cell (row, col) relative to .board-wrap
+  // Reads gap + tileSize fresh each call — correct after any resize
+  function posFor(row, col) {
+    const gap = cssGap();
+    const ts  = tileSize();
+
+    const boardRect = boardEl.getBoundingClientRect();
+    const wrapRect  = boardWrap.getBoundingClientRect();
+    const ox = boardRect.left - wrapRect.left;
+    const oy = boardRect.top  - wrapRect.top;
+
+    return {
+      left: ox + gap + col * (ts + gap),
+      top:  oy + gap + row * (ts + gap),
+    };
+  }
+
+  /* ─────────────────────────────────────────────
+     BUILD EMPTY CELL GRID
+  ───────────────────────────────────────────── */
   for (let i = 0; i < SIZE * SIZE; i++) {
     const cell = document.createElement('div');
     cell.className = 'cell';
     boardEl.appendChild(cell);
   }
 
-  /* ── Tile positioning helpers ── */
-  function tileSize() {
-    const cell = boardEl.querySelector('.cell');
-    return cell ? cell.offsetWidth : 80;
-  }
-
-  function posFor(row, col) {
-    const ts = tileSize();
-    const boardRect = boardEl.getBoundingClientRect();
-    const wrapRect  = boardWrap.getBoundingClientRect();
-    const offsetX = boardRect.left - wrapRect.left;
-    const offsetY = boardRect.top  - wrapRect.top;
-    return {
-      left: offsetX + GAP + col * (ts + GAP),
-      top:  offsetY + GAP + row * (ts + GAP),
-    };
-  }
-
-  /* ── Tile DOM ── */
+  /* ─────────────────────────────────────────────
+     TILE DOM HELPERS
+  ───────────────────────────────────────────── */
   function colorClass(v) {
-    if (v > 2048) return 't-high';
-    return 't' + v;
+    return v <= 2048 ? 't' + v : 't-high';
+  }
+
+  function fontClass(v) {
+    const d = String(v).length;
+    if (d <= 2)  return '';
+    if (d === 3) return 'fs-3';
+    if (d === 4) return 'fs-4';
+    return 'fs-5';
   }
 
   function createTileEl(id, value, row, col) {
-    const el = document.createElement('div');
-    el.className = `tile ${colorClass(value)}`;
-    el.dataset.id = id;
-    el.dataset.v = value;
-    if (value >= 10000) el.dataset.vBig = true;
+    const el  = document.createElement('div');
+    const pos = posFor(row, col);
+    const ts  = tileSize();
+
+    el.className   = `tile ${colorClass(value)} ${fontClass(value)}`;
+    el.dataset.id  = id;
     el.textContent = value;
-    const ts = tileSize();
     el.style.width  = ts + 'px';
     el.style.height = ts + 'px';
-    const pos = posFor(row, col);
-    el.style.left = pos.left + 'px';
-    el.style.top  = pos.top  + 'px';
+    el.style.left   = pos.left + 'px';
+    el.style.top    = pos.top  + 'px';
+    // no transition yet — tile starts at its spawn position
+    el.style.transition = 'none';
+
     tilesLayer.appendChild(el);
     tileEls[id] = el;
     return el;
   }
 
+  // Slide a tile to a new grid position (animated)
   function moveTileEl(id, row, col) {
     const el = tileEls[id];
     if (!el) return;
     const pos = posFor(row, col);
+    el.style.transition = `left ${TRANSITION}ms ease, top ${TRANSITION}ms ease`;
     el.style.left = pos.left + 'px';
     el.style.top  = pos.top  + 'px';
   }
@@ -437,37 +457,44 @@
     const el = tileEls[id];
     if (!el) return;
     el.textContent = value;
-    el.dataset.v = value;
-    el.className = `tile ${colorClass(value)} merge-tile`;
-    if (value >= 10000) el.dataset.vBig = true;
+    el.className   = `tile ${colorClass(value)} ${fontClass(value)} merge-tile`;
+    el.style.transition = 'none';
   }
 
-  /* ── Grid helpers ── */
+  /* ─────────────────────────────────────────────
+     GRID HELPERS
+  ───────────────────────────────────────────── */
   function emptyGrid() {
-    return Array.from({length: SIZE}, () => Array(SIZE).fill(null));
+    return Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
   }
 
   function emptyCells() {
-    const cells = [];
+    const out = [];
     for (let r = 0; r < SIZE; r++)
       for (let c = 0; c < SIZE; c++)
-        if (!tileGrid[r][c]) cells.push([r, c]);
-    return cells;
+        if (!tileGrid[r][c]) out.push([r, c]);
+    return out;
   }
 
   function spawnTile() {
     const cells = emptyCells();
     if (!cells.length) return;
     const [r, c] = cells[Math.floor(Math.random() * cells.length)];
-    const value = Math.random() < 0.9 ? 2 : 4;
-    const id = nextId++;
+    const value  = Math.random() < 0.9 ? 2 : 4;
+    const id     = nextId++;
     tileGrid[r][c] = { id, value };
     const el = createTileEl(id, value, r, c);
+    // Force a reflow so the transition-less placement renders before
+    // we add the animation class, preventing a flash.
+    void el.offsetWidth;
     el.classList.add('new-tile');
   }
 
-  /* ── Score ── */
+  /* ─────────────────────────────────────────────
+     SCORE
+  ───────────────────────────────────────────── */
   function addScore(n) {
+    if (!n) return;
     score += n;
     scoreEl.textContent = score;
     scoreEl.classList.remove('score-bump');
@@ -480,211 +507,316 @@
     }
   }
 
-  /* ── Move logic ── */
-  // Returns {newLine, score, merged} for a single row (left-shift)
-  function shiftLeft(line) {
-    const vals = line.filter(t => t);  // remove nulls
-    const out = Array(SIZE).fill(null);
-    let gained = 0;
-    let i = 0, j = 0;
-    while (j < vals.length) {
-      if (j + 1 < vals.length && vals[j].value === vals[j+1].value) {
-        const newVal = vals[j].value * 2;
+  /* ─────────────────────────────────────────────
+     MOVE LOGIC
+     shiftLeft: pure function that works on a
+     snapshot of one row, never mutates input.
+  ───────────────────────────────────────────── */
+
+  // Accepts an array of SIZE tiles/nulls.
+  // Returns { line: SIZE tiles/nulls, gained: number,
+  //           removes: [id,...], merges: [id,...] }
+  function shiftLeft(row) {
+    // Pull out non-null tiles (preserve object identity)
+    const vals = row.filter(Boolean);
+
+    const out    = Array(SIZE).fill(null);
+    let gained   = 0;
+    const removes = [];
+    const merges  = [];
+
+    let wi = 0; // write index
+    let ri = 0; // read index
+    while (ri < vals.length) {
+      if (ri + 1 < vals.length && vals[ri].value === vals[ri + 1].value) {
+        const newVal = vals[ri].value * 2;
         gained += newVal;
-        out[i] = { ...vals[j], value: newVal, merged: true };
-        // mark the consumed tile for removal
-        out[i].consumed = vals[j+1].id;
-        j += 2;
+        // The surviving tile keeps the id of the left/top tile
+        out[wi] = { id: vals[ri].id, value: newVal };
+        removes.push(vals[ri + 1].id);  // the right/bottom tile is absorbed
+        merges.push(vals[ri].id);       // surviving tile needs visual update
+        ri += 2;
       } else {
-        out[i] = vals[j];
-        j++;
+        out[wi] = { id: vals[ri].id, value: vals[ri].value };
+        ri++;
       }
-      i++;
+      wi++;
     }
-    return { line: out, score: gained };
+
+    return { line: out, gained, removes, merges };
   }
 
-  function rotateRight(grid) {
-    return grid[0].map((_, c) => grid.map(row => row[c]).reverse());
+  // Grid transformations (no mutation — return new arrays)
+  function rotateRight(g) {
+    return g[0].map((_, c) => g.map(row => row[c]).reverse());
   }
-  function rotateLeft(grid) {
-    return grid[0].map((_, c) => grid.map(row => row[SIZE-1-c]));
+  function rotateLeft(g) {
+    return g[0].map((_, c) => g.map(row => row[SIZE - 1 - c]));
   }
-  function flipH(grid) {
-    return grid.map(row => [...row].reverse());
+  function flipH(g) {
+    return g.map(row => [...row].reverse());
   }
 
   function move(dir) {
     if (moving || over) return;
 
-    // Transform grid so we always shift "left"
-    let g = tileGrid.map(r => [...r]);
-    if (dir === 'right')  g = flipH(g);
-    if (dir === 'up')     g = rotateRight(g);
-    if (dir === 'down')   g = rotateLeft(g);
+    // ── 1. Snapshot current grid for comparison ──────────────────
+    // We detect "changed" BEFORE any mutation by comparing value
+    // snapshots of the pre-transform and post-transform grids.
 
-    let totalScore = 0;
-    let changed = false;
-    const toRemove = [];
-    const toMerge  = [];
+    let g = tileGrid.map(row => row.map(t => t ? { ...t } : null));
+
+    // Rotate so the direction we want maps to "left"
+    if (dir === 'right') g = flipH(g);
+    if (dir === 'up')    g = rotateLeft(g);
+    if (dir === 'down')  g = rotateRight(g);
+
+    // Collect actions
+    let totalGained = 0;
+    let changed     = false;
+    const allRemoves = [];
+    const allMerges  = [];
+    const newGrid    = emptyGrid();
 
     for (let r = 0; r < SIZE; r++) {
-      const result = shiftLeft(g[r]);
-      if (JSON.stringify(g[r].map(t=>t&&t.value)) !== JSON.stringify(result.line.map(t=>t&&t.value))) changed = true;
-      totalScore += result.score;
-      result.line.forEach(t => {
-        if (t && t.consumed) toRemove.push(t.consumed);
-        if (t && t.merged)   toMerge.push(t.id);
-      });
-      g[r] = result.line;
+      const { line, gained, removes, merges } = shiftLeft(g[r]);
+
+      // Detect change: compare old vs new value arrangement
+      for (let c = 0; c < SIZE; c++) {
+        const oldVal = g[r][c] ? g[r][c].value : 0;
+        const newVal = line[c] ? line[c].value  : 0;
+        // A merge counts as changed even if values happen to match
+        // at the same index in some contrived board, because tiles moved.
+        if (oldVal !== newVal || removes.length) changed = true;
+      }
+
+      totalGained += gained;
+      allRemoves.push(...removes);
+      allMerges.push(...merges);
+      newGrid[r] = line;
     }
 
-    // Reverse transforms
-    if (dir === 'right')  g = flipH(g);
-    if (dir === 'up')     g = rotateLeft(g);
-    if (dir === 'down')   g = rotateRight(g);
+    // Reverse transforms on the new grid
+    let finalGrid = newGrid;
+    if (dir === 'right') finalGrid = flipH(finalGrid);
+    if (dir === 'up')    finalGrid = rotateRight(finalGrid);
+    if (dir === 'down')  finalGrid = rotateLeft(finalGrid);
 
-    if (!changed) return;
+    // ── 2. Did anything actually move? ───────────────────────────
+    // More reliable check: compare tile IDs at each position
+    if (!changed) {
+      // Do a definitive positional check on the final vs current grid
+      let reallyChanged = false;
+      outer:
+      for (let r = 0; r < SIZE; r++)
+        for (let c = 0; c < SIZE; c++) {
+          const a = tileGrid[r][c];
+          const b = finalGrid[r][c];
+          if ((a ? a.id : 0) !== (b ? b.id : 0)) { reallyChanged = true; break outer; }
+        }
+      if (!reallyChanged) return;
+    }
 
     moving = true;
 
-    // Remove consumed (bottom of merge) immediately but after transition
-    toRemove.forEach(id => {
+    // ── 3. Send absorbed (bottom) tiles behind the survivor ──────
+    allRemoves.forEach(id => {
       const el = tileEls[id];
-      if (el) el.style.zIndex = 1;  // goes under the surviving tile
+      if (el) el.style.zIndex = '1';
     });
 
-    // Update tileGrid and move elements
-    for (let r = 0; r < SIZE; r++) {
+    // ── 4. Slide all surviving tiles to their new positions ──────
+    // Batch all getBoundingClientRect reads FIRST to avoid
+    // repeated forced reflows.
+    const positions = {};
+    for (let r = 0; r < SIZE; r++)
       for (let c = 0; c < SIZE; c++) {
-        const t = g[r][c];
-        if (t) moveTileEl(t.id, r, c);
+        const t = finalGrid[r][c];
+        if (t) positions[t.id] = { r, c };
+      }
+
+    // Also slide the absorbed tiles to their merge destination
+    allRemoves.forEach(id => {
+      // Find where this id ended up in finalGrid (it was consumed)
+      // so we slide it to the same cell as its merger partner.
+      // We stored the survivor id in the same slot, so we match
+      // by looking up the survivor that consumed it.
+      // Easiest: slide it where the merge survivor went.
+      // We can find this by searching allMerges positions.
+    });
+
+    // For removed tiles, slide them to the survivor's destination
+    // by matching them via the shiftLeft result stored in merges.
+    // We need to know which survivor consumed which removed tile.
+    // Re-run shiftLeft to collect that mapping.
+    const absorbedTo = {}; // removed_id → { r, c }
+
+    {
+      let gCheck = tileGrid.map(row => row.map(t => t ? { ...t } : null));
+      if (dir === 'right') gCheck = flipH(gCheck);
+      if (dir === 'up')    gCheck = rotateLeft(gCheck);
+      if (dir === 'down')  gCheck = rotateRight(gCheck);
+
+      for (let r = 0; r < SIZE; r++) {
+        let ri = 0, wi = 0;
+        const vals = gCheck[r].filter(Boolean);
+        while (ri < vals.length) {
+          if (ri + 1 < vals.length && vals[ri].value === vals[ri + 1].value) {
+            // vals[ri+1] is absorbed into vals[ri], which lands at write-index wi in rotated space
+            // We need the real-world r,c after un-rotating.
+            // Rather than un-rotating the write-index, we just
+            // record that the absorbed tile should go where the survivor goes.
+            absorbedTo[vals[ri + 1].id] = vals[ri].id; // absorbed → survivor id
+            ri += 2;
+          } else {
+            ri++;
+          }
+          wi++;
+        }
       }
     }
 
-    // After slide transition, clean up
-    setTimeout(() => {
-      // Remove consumed tiles
-      toRemove.forEach(id => removeTileEl(id));
+    // Now slide absorbed tiles alongside their survivors
+    Object.entries(absorbedTo).forEach(([absId, survivorId]) => {
+      const pos = positions[survivorId];
+      if (pos) moveTileEl(Number(absId), pos.r, pos.c);
+    });
 
-      // Update merged tiles appearance
-      toMerge.forEach(id => {
-        // find new value
-        for (let r = 0; r < SIZE; r++)
-          for (let c = 0; c < SIZE; c++)
-            if (g[r][c] && g[r][c].id === id)
-              updateTileEl(id, g[r][c].value);
+    // Slide all survivors
+    Object.entries(positions).forEach(([id, { r, c }]) => {
+      moveTileEl(Number(id), r, c);
+    });
+
+    // ── 5. After slide transition, update DOM ─────────────────────
+    setTimeout(() => {
+      // Remove absorbed tiles
+      allRemoves.forEach(id => removeTileEl(id));
+
+      // Update merged tiles (value + color + bounce animation)
+      allMerges.forEach(id => {
+        const pos = positions[id];
+        if (!pos) return;
+        const t = finalGrid[pos.r][pos.c];
+        if (t) updateTileEl(id, t.value);
       });
 
-      // Remove merged flags from tileGrid so they don't persist
-      for (let r = 0; r < SIZE; r++)
-        for (let c = 0; c < SIZE; c++)
-          if (g[r][c]) { delete g[r][c].merged; delete g[r][c].consumed; }
+      // Commit new grid
+      tileGrid = finalGrid;
 
-      tileGrid = g;
+      // Score
+      addScore(totalGained);
 
-      if (totalScore) addScore(totalScore);
-
-      // Check win
+      // Win check (only trigger once)
       if (!won) {
-        outer: for (let r = 0; r < SIZE; r++)
+        loop:
+        for (let r = 0; r < SIZE; r++)
           for (let c = 0; c < SIZE; c++)
             if (tileGrid[r][c] && tileGrid[r][c].value >= 2048) {
               won = true;
               showWin();
-              break outer;
+              break loop;
             }
       }
 
       // Spawn new tile
       spawnTile();
 
-      // Remove pop animation class after it fires
+      // Clean animation classes after they finish
       Object.values(tileEls).forEach(el => {
         el.addEventListener('animationend', () => {
           el.classList.remove('new-tile', 'merge-tile');
         }, { once: true });
       });
 
-      // Check game over
+      // Game-over check
       if (!canMove()) {
         over = true;
-        setTimeout(() => overlayOver.classList.add('show'), 300);
+        setTimeout(() => overlayOver.classList.add('show'), 350);
       }
 
       moving = false;
-    }, 130);
+    }, TRANSITION + 20); // small buffer after CSS transition ends
   }
 
+  /* ─────────────────────────────────────────────
+     CAN MOVE?
+  ───────────────────────────────────────────── */
   function canMove() {
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
         if (!tileGrid[r][c]) return true;
         const v = tileGrid[r][c].value;
-        if (r+1 < SIZE && tileGrid[r+1][c] && tileGrid[r+1][c].value === v) return true;
-        if (c+1 < SIZE && tileGrid[r][c+1] && tileGrid[r][c+1].value === v) return true;
+        if (r + 1 < SIZE && tileGrid[r + 1][c] && tileGrid[r + 1][c].value === v) return true;
+        if (c + 1 < SIZE && tileGrid[r][c + 1] && tileGrid[r][c + 1].value === v) return true;
       }
     }
     return false;
   }
 
-  /* ── Init / Restart ── */
+  /* ─────────────────────────────────────────────
+     INIT / RESTART
+  ───────────────────────────────────────────── */
   function init() {
-    // Clear
     tilesLayer.innerHTML = '';
-    tileEls = {};
-    nextId = 1;
+    tileEls  = {};
+    nextId   = 1;
     tileGrid = emptyGrid();
-    score = 0;
-    won = false;
-    over = false;
-    moving = false;
+    score    = 0;
+    won      = false;
+    over     = false;
+    moving   = false;
+
     scoreEl.textContent = 0;
-    bestEl.textContent = best;
+    bestEl.textContent  = best;
     overlayWin.classList.remove('show');
     overlayOver.classList.remove('show');
     stopConfetti();
 
-    // Spawn 2 tiles
+    // Spawn 2 starting tiles (no pop animation for cleanliness)
     spawnTile();
     spawnTile();
-    // Remove pop from initial tiles (no animation wanted)
     Object.values(tileEls).forEach(el => el.classList.remove('new-tile'));
   }
 
-  /* ── Win overlay ── */
+  /* ─────────────────────────────────────────────
+     WIN OVERLAY
+  ───────────────────────────────────────────── */
   function showWin() {
     overlayWin.classList.add('show');
     startConfetti();
   }
 
-  /* ── Confetti ── */
+  /* ─────────────────────────────────────────────
+     CONFETTI
+  ───────────────────────────────────────────── */
   let confettiRAF = null;
-  const confCtx = confCanvas.getContext('2d');
-  let pieces = [];
+  let pieces      = [];
+  const PALETTE   = ['#f9d7e0','#ddd6f7','#f5c842','#7ecba1','#6dbfea','#f2845a','#9d74d4'];
 
   function startConfetti() {
     const W = confCanvas.offsetWidth;
     const H = confCanvas.offsetHeight;
-    confCanvas.width = W;
+    confCanvas.width  = W;
     confCanvas.height = H;
-    pieces = Array.from({length: 80}, () => ({
-      x: Math.random() * W,
-      y: Math.random() * H - H,
-      r: Math.random() * 6 + 4,
-      d: Math.random() * 2 + 1,
-      color: ['#f9d7e0','#ddd6f7','#f5c842','#7ecba1','#6dbfea','#f2845a','#9d74d4'][Math.floor(Math.random()*7)],
-      tilt: Math.random() * 10 - 5,
-      tiltV: Math.random() * 0.3 + 0.1,
-      angle: Math.random() * Math.PI * 2,
+
+    pieces = Array.from({ length: 80 }, () => ({
+      x:      Math.random() * W,
+      y:      Math.random() * H - H,
+      r:      Math.random() * 6 + 4,
+      vy:     Math.random() * 2 + 1,
+      color:  PALETTE[Math.floor(Math.random() * PALETTE.length)],
+      tilt:   Math.random() * 10 - 5,
+      tiltV:  Math.random() * 0.3 + 0.1,
+      angle:  Math.random() * Math.PI * 2,
       angleV: Math.random() * 0.08 + 0.02,
     }));
-    function loop() {
+
+    (function loop() {
       confCtx.clearRect(0, 0, W, H);
       pieces.forEach(p => {
-        p.y += p.d;
+        p.y     += p.vy;
         p.angle += p.angleV;
-        p.tilt += p.tiltV;
+        p.tilt  += p.tiltV;
         if (p.y > H) { p.y = -10; p.x = Math.random() * W; }
         confCtx.beginPath();
         confCtx.ellipse(p.x + p.tilt, p.y, p.r, p.r * 0.5, p.angle, 0, Math.PI * 2);
@@ -692,8 +824,7 @@
         confCtx.fill();
       });
       confettiRAF = requestAnimationFrame(loop);
-    }
-    loop();
+    })();
   }
 
   function stopConfetti() {
@@ -702,7 +833,9 @@
     pieces = [];
   }
 
-  /* ── Keyboard ── */
+  /* ─────────────────────────────────────────────
+     INPUT — KEYBOARD
+  ───────────────────────────────────────────── */
   const KEY_MAP = {
     ArrowLeft:'left', ArrowRight:'right', ArrowUp:'up', ArrowDown:'down',
     a:'left', d:'right', w:'up', s:'down',
@@ -714,8 +847,11 @@
     if (dir) { e.preventDefault(); move(dir); }
   });
 
-  /* ── Touch / Swipe ── */
-  let touchStartX = 0, touchStartY = 0;
+  /* ─────────────────────────────────────────────
+     INPUT — TOUCH / SWIPE
+  ───────────────────────────────────────────── */
+  let touchStartX = 0;
+  let touchStartY = 0;
 
   boardWrap.addEventListener('touchstart', e => {
     touchStartX = e.touches[0].clientX;
@@ -723,15 +859,17 @@
   }, { passive: true });
 
   boardWrap.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    const absDx = Math.abs(dx), absDy = Math.abs(dy);
-    if (Math.max(absDx, absDy) < 20) return;
-    if (absDx > absDy)  move(dx > 0 ? 'right' : 'left');
-    else                move(dy > 0 ? 'down'  : 'up');
+    const dx    = e.changedTouches[0].clientX - touchStartX;
+    const dy    = e.changedTouches[0].clientY - touchStartY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    if (Math.max(absDx, absDy) < 20) return; // too small → ignore
+    move(absDx > absDy ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
   }, { passive: true });
 
-  /* ── Buttons ── */
+  /* ─────────────────────────────────────────────
+     BUTTONS
+  ───────────────────────────────────────────── */
   document.getElementById('btn-new').addEventListener('click', init);
   document.getElementById('btn-continue').addEventListener('click', () => {
     overlayWin.classList.remove('show');
@@ -740,7 +878,33 @@
   document.getElementById('btn-restart-win').addEventListener('click', init);
   document.getElementById('btn-restart-over').addEventListener('click', init);
 
-  /* ── Start ── */
+  /* ─────────────────────────────────────────────
+     RESIZE — reposition all tiles if window resizes
+  ───────────────────────────────────────────── */
+  window.addEventListener('resize', () => {
+    const ts = tileSize();
+    // Update --tile-size so CSS grid redraws cells
+    document.documentElement.style.setProperty('--tile-size', ts + 'px');
+    // Reposition every live tile
+    for (let r = 0; r < SIZE; r++)
+      for (let c = 0; c < SIZE; c++) {
+        const t = tileGrid[r][c];
+        if (!t) continue;
+        const el  = tileEls[t.id];
+        const pos = posFor(r, c);
+        if (el) {
+          el.style.transition = 'none';
+          el.style.left  = pos.left + 'px';
+          el.style.top   = pos.top  + 'px';
+          el.style.width  = ts + 'px';
+          el.style.height = ts + 'px';
+        }
+      }
+  });
+
+  /* ─────────────────────────────────────────────
+     START
+  ───────────────────────────────────────────── */
   init();
 })();
 </script>
