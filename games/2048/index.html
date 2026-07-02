@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-tile-theme="pastel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>2048</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="../../manifest.json">
+<meta name="theme-color" content="#e07a5f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="2048">
+<link rel="apple-touch-icon" href="icon-192.svg">
+</head>
+<body>
+
+<!-- ── Header ── -->
+<a class="back-btn" style="color:rgba(167,139,250,.8)" href="../../index.html">← AniGames</a>
+<div class="header">
+  <div class="logo">2048</div>
+  <div class="scores-wrap">
+    <div class="score-box">
+      <div class="label">Score</div>
+      <div class="value" id="score">0</div>
+    </div>
+    <div class="score-box">
+      <div class="label">Best</div>
+      <div class="value" id="best">0</div>
+    </div>
+    <div class="score-box">
+      <div class="label">Moves</div>
+      <div class="value" id="moves">0</div>
+    </div>
+    <div class="score-box">
+      <div class="label">Time</div>
+      <div class="value" id="timer">0:00</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Controls ── -->
+<div class="controls">
+  <span class="tagline">Join the tiles, reach <strong>2048!</strong></span>
+  <div class="btn-group">
+    <button class="btn-icon" id="btn-undo"   title="Undo (Ctrl+Z)">↩</button>
+    <button class="btn-icon" id="btn-sound"  title="Toggle sound">🔊</button>
+    <button class="btn-icon" id="btn-theme"  title="Toggle dark mode">🌙</button>
+    <button class="btn-icon" id="btn-tile-theme" title="Tile theme">🎨</button>
+    <button class="btn-icon" id="btn-stats"  title="Stats">📊</button>
+    <button class="btn-new"  id="btn-new">New Game</button>
+  </div>
+</div>
+
+<!-- ── Board ── -->
+<div class="board-wrap" id="board-wrap">
+  <div class="board" id="board"></div>
+  <div class="tiles-layer" id="tiles-layer"></div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Win overlay -->
+  <div class="overlay" id="overlay-win">
+    <h2>🎉 You Win!</h2>
+    <p id="win-score-msg">You reached 2048!</p>
+    <button class="btn-new" id="btn-continue">Keep Playing</button>
+    <button class="btn-new secondary" id="btn-restart-win">New Game</button>
+  </div>
+
+  <!-- Game over overlay -->
+  <div class="overlay" id="overlay-over">
+    <h2>Game Over 😢</h2>
+    <p id="over-score-msg">Better luck next time!</p>
+    <button class="btn-new" id="btn-restart-over">Try Again</button>
+  </div>
+</div>
+
+<!-- ── Resume banner (shown when a saved game exists) ── -->
+<div class="resume-banner" id="resume-banner" style="display:none">
+  <span>💾 You have a saved game!</span>
+  <div class="resume-btns">
+    <button class="btn-new" id="btn-resume">Resume</button>
+    <button class="btn-new secondary" id="btn-discard">New Game</button>
+  </div>
+</div>
+
+<!-- ── Stats modal ── -->
+<div class="modal-backdrop" id="stats-backdrop">
+  <div class="modal" id="stats-modal">
+    <h2>📊 Your Stats</h2>
+    <div class="stats-grid" id="stats-grid"></div>
+    <h3 style="margin-top:16px">🏆 Top Scores</h3>
+    <ol id="lb-list"></ol>
+    <button class="btn-new" id="btn-close-stats" style="margin-top:14px">Close</button>
+  </div>
+</div>
+
+<!-- ── Tile theme picker modal ── -->
+<div class="modal-backdrop" id="theme-backdrop">
+  <div class="modal" id="theme-modal">
+    <h2>🎨 Tile Theme</h2>
+    <div class="theme-options" id="theme-options"></div>
+    <button class="btn-new" id="btn-close-theme" style="margin-top:14px">Done</button>
+  </div>
+</div>
+
+<!-- ── Hints ── -->
+<div class="hint desktop-hint">
+  <div>Use keyboard or swipe to move tiles.</div>
+  <div class="keys">
+    <span class="key">↑</span><span class="key">↓</span>
+    <span class="key">←</span><span class="key">→</span>
+    &nbsp;or&nbsp;
+    <span class="key">W</span><span class="key">A</span>
+    <span class="key">S</span><span class="key">D</span>
+    &nbsp;·&nbsp;
+    <span class="key">Ctrl+Z</span> undo
+  </div>
+</div>
+<div class="hint mobile-hint">Swipe to move · tap ↩ to undo</div>
+
+<script src="sounds.js"></script>
+<script src="themes.js"></script>
+<script src="game.js"></script>
+<script>
+  // Register service worker for offline support
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('✅ 2048 is ready to play offline!'))
+        .catch(err => console.warn('SW registration failed:', err));
+    });
+  }
+</script>
+</body>
+</html>
