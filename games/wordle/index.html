@@ -1,0 +1,340 @@
+<!-- anigames/games/wordle/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Wordle · AniGames</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* anigames/games/wordle/index.html — inline styles */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overscroll-behavior:none}
+body{
+  font-family:'Nunito',sans-serif;background:#0d0d18;color:#e8e6ff;
+  min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+  padding:18px 16px 48px;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.back-btn{
+  align-self:flex-start;display:inline-flex;align-items:center;gap:6px;
+  text-decoration:none;font-size:.82rem;font-weight:800;
+  color:rgba(56,189,248,.8);margin-bottom:10px;transition:color .15s;
+}
+.back-btn:hover{color:#38bdf8}
+.topbar{width:min(96vw,420px);display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.title{font-size:1.9rem;font-weight:900;color:#38bdf8;text-shadow:0 0 24px rgba(56,189,248,.35);letter-spacing:-.02em}
+.btn-icon{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  color:#e8e6ff;border-radius:10px;width:38px;height:38px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.btn-icon:active{transform:scale(.92)}
+.msg{
+  height:30px;display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;font-weight:800;color:#38bdf8;margin-bottom:10px;
+  letter-spacing:.01em;
+}
+/* Tile grid */
+.grid{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.row{display:flex;gap:6px}
+.cell{
+  width:min(54px, calc((min(96vw,420px) - 24px) / 5));
+  height:min(54px, calc((min(96vw,420px) - 24px) / 5));
+  border:2px solid rgba(255,255,255,.12);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.45rem;font-weight:900;text-transform:uppercase;
+  color:#fff;
+  transition:border-color .15s, background .25s, transform .1s;
+  background:rgba(255,255,255,.03);
+}
+.cell.filled{ border-color:rgba(255,255,255,.3); }
+.cell.correct{ background:#166534; border-color:#4ade80; color:#fff; }
+.cell.present{ background:#854d0e; border-color:#fbbf24; color:#fff; }
+.cell.absent { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.12); color:rgba(232,230,255,.5); }
+.cell.pop    { animation:cellPop .12s ease; }
+.cell.flip   { animation:cellFlip .35s ease; }
+.cell.shake  { animation:cellShake .4s ease; }
+@keyframes cellPop  { 0%{transform:scale(1)}50%{transform:scale(1.14)}100%{transform:scale(1)} }
+@keyframes cellFlip { 0%{transform:scaleY(1)}50%{transform:scaleY(0)}100%{transform:scaleY(1)} }
+@keyframes cellShake{ 0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)} }
+/* Keyboard */
+.keyboard{display:flex;flex-direction:column;gap:6px;align-items:center;width:min(96vw,420px)}
+.kb-row{display:flex;gap:4px}
+.key{
+  height:48px;min-width:34px;padding:0 6px;border:none;
+  border-radius:8px;background:rgba(255,255,255,.09);
+  color:#e8e6ff;font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:800;
+  cursor:pointer;transition:background .12s,transform .1s;
+  display:flex;align-items:center;justify-content:center;
+}
+.key:active{transform:scale(.92)}
+.key.wide{min-width:52px;font-size:.72rem;gap:4px}
+.key.correct{background:#166534;color:#fff}
+.key.present{background:#854d0e;color:#fff}
+.key.absent {background:rgba(255,255,255,.05);color:rgba(232,230,255,.35)}
+/* Legend */
+.legend{
+  margin-top:16px;width:min(96vw,420px);
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;
+}
+.legend-title{font-size:.72rem;font-weight:900;color:rgba(232,230,255,.5);text-transform:uppercase;letter-spacing:.08em}
+.legend-row{display:flex;align-items:center;gap:12px;font-size:.85rem;font-weight:700;color:rgba(232,230,255,.75)}
+.legend-tile{
+  width:32px;height:32px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;font-weight:900;color:#fff;
+}
+.legend-tile.correct{background:#166534;border:2px solid #4ade80}
+.legend-tile.present{background:#854d0e;border:2px solid #fbbf24}
+.legend-tile.absent{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);color:rgba(232,230,255,.4)}
+.legend-note{font-size:.76rem;font-weight:600;color:rgba(232,230,255,.4);line-height:1.5;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;margin-top:2px}
+/* New game button */
+.btn-new-game{
+  margin-top:14px;
+  background:linear-gradient(135deg,#0c4a6e,#38bdf8);
+  color:#fff;border:none;border-radius:12px;padding:11px 28px;
+  font-family:'Nunito',sans-serif;font-size:1rem;font-weight:900;
+  cursor:pointer;display:none;align-items:center;gap:8px;
+  box-shadow:0 4px 18px rgba(56,189,248,.3);transition:.15s;
+}
+.btn-new-game:active{transform:scale(.96)}
+.btn-new-game.visible{display:flex}
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="../../index.html">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  AniGames
+</a>
+
+<div class="topbar">
+  <div class="title">✏️ Wordle</div>
+  <button class="btn-icon" id="btn-new-top" aria-label="New word">
+    <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+      <path d="M1.5 8.5a7 7 0 017-7 7 7 0 015 2.1M15.5 8.5a7 7 0 01-7 7 7 7 0 01-5-2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M13 1v3.5h-3M4 16v-3.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+</div>
+
+<div class="msg" id="msg"></div>
+<div class="grid" id="grid"></div>
+<div class="keyboard" id="keyboard"></div>
+<button class="btn-new-game" id="btn-new-game">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.5 8a6.5 6.5 0 016.5-6.5 6.5 6.5 0 014.6 1.9M14.5 8a6.5 6.5 0 01-6.5 6.5 6.5 6.5 0 01-4.6-1.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M12.5 1v3h-3M3.5 15v-3h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  New Word
+</button>
+
+<!-- Colour legend -->
+<div class="legend">
+  <div class="legend-title">💡 How to play</div>
+  <div class="legend-row">
+    <div class="legend-tile correct">A</div>
+    <span>Right letter, right spot</span>
+  </div>
+  <div class="legend-row">
+    <div class="legend-tile present">B</div>
+    <span>Right letter, wrong spot</span>
+  </div>
+  <div class="legend-row">
+    <div class="legend-tile absent">C</div>
+    <span>Letter not in the word</span>
+  </div>
+  <div class="legend-note">Guess the 5-letter word in 6 tries. Type or tap the keyboard below.</div>
+</div>
+
+<script>
+// anigames/games/wordle/index.html — game script
+(() => {
+  const WORDS = ['crane','slate','trace','blast','flame','graze','plumb','swift','quirk','vivid',
+    'boxer','jazzy','queen','crypt','kneel','flown','pixel','oxide','synth','glyph','fuzzy','proxy',
+    'vapor','witch','extra','quest','jumpy','blaze','crisp','dwarf','epoch','flair','gloom','hoist',
+    'irony','joust','karma','lapel','macro','naive','ozone','piano','reign','scout','tacit','ultra',
+    'vigor','waltz','xenon','yacht','zesty','abbey','baker','civic','depot','elite','finch','grove',
+    'hedge','inlet','joker','knack','lemon','mayor','noble','olive','prank','quota','rivet','stomp',
+    'tidal','umbra','verge','whole','yield','alpha','brisk','cedar','delta','ember','fudge','grimy',
+    'humid','infer','jewel','kinky','lunar','mirth','niece','occur','plaza','robin','snowy','taunt',
+    'venom','weave','yearn','bride','derby','envoy','frost','guile','hasty','mourn','nifty','optic',
+    'plaid','rebut','sigma','thumb','vouch','wafer','yodel','algae','brine','cloth','dowry','ensue',
+    'frond','gummy','hippo','ionic','leafy','mulch','nudge','onset','prism','runic','smear','tower',
+    'viola','acorn','birch','chalk','deter','elbow','freak','gusto','havoc','kebab','lyric','mocha',
+    'nexus','ovoid','prowl','rugby','stint','tepid','vault','whelp','tiger','spade','flute','globe',
+    'chess','plume','storm','brave','clown','drank','elegy','finny','groan','hyena','ivory','jazzy'];
+
+  const ROWS=6, COLS=5;
+  let word, curRow, curCol, guesses, done;
+
+  function newGame() {
+    word   = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
+    curRow = 0; curCol = 0;
+    guesses = Array.from({length:ROWS}, () => Array(COLS).fill(''));
+    done    = false;
+    buildGrid();
+    buildKeyboard();
+    setMsg('');
+    document.getElementById('btn-new-game').classList.remove('visible');
+  }
+
+  const gridEl = document.getElementById('grid');
+  const kbEl   = document.getElementById('keyboard');
+  let cells = [], keyEls = {};
+
+  function buildGrid() {
+    gridEl.innerHTML = '';
+    cells = [];
+    for (let r=0; r<ROWS; r++) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const rowCells = [];
+      for (let c=0; c<COLS; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        row.appendChild(cell);
+        rowCells.push(cell);
+      }
+      gridEl.appendChild(row);
+      cells.push(rowCells);
+    }
+  }
+
+  const KB_ROWS = [
+    ['Q','W','E','R','T','Y','U','I','O','P'],
+    ['A','S','D','F','G','H','J','K','L'],
+    ['ENTER','Z','X','C','V','B','N','M','⌫'],
+  ];
+
+  function buildKeyboard() {
+    kbEl.innerHTML = '';
+    keyEls = {};
+    KB_ROWS.forEach(row => {
+      const div = document.createElement('div');
+      div.className = 'kb-row';
+      row.forEach(k => {
+        const btn = document.createElement('button');
+        btn.className = 'key' + (k==='ENTER'||k==='⌫' ? ' wide' : '');
+        if (k === 'ENTER') {
+          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M12 2v5a2 2 0 01-2 2H2M5 6l-3 3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Enter';
+        } else if (k === '⌫') {
+          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2H12a1 1 0 011 1v8a1 1 0 01-1 1H5L1 7l4-5z" stroke="currentColor" stroke-width="1.4"/><path d="M9 5l-3 4M6 5l3 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+        } else {
+          btn.textContent = k;
+        }
+        btn.addEventListener('click', () => handleKey(k));
+        div.appendChild(btn);
+        keyEls[k] = btn;
+      });
+      kbEl.appendChild(div);
+    });
+  }
+
+  function setMsg(txt, color) {
+    const el = document.getElementById('msg');
+    el.textContent = txt;
+    el.style.color = color || '#38bdf8';
+  }
+
+  function handleKey(k) {
+    if (done) return;
+    if (k === '⌫' || k === 'Backspace') {
+      if (curCol > 0) {
+        curCol--;
+        guesses[curRow][curCol] = '';
+        cells[curRow][curCol].textContent = '';
+        cells[curRow][curCol].classList.remove('filled');
+      }
+    } else if (k === 'ENTER') {
+      if (curCol < COLS) { setMsg('✍️ Not enough letters!'); shakeRow(); return; }
+      submit();
+    } else if (/^[A-Z]$/.test(k) && curCol < COLS) {
+      guesses[curRow][curCol] = k;
+      const cell = cells[curRow][curCol];
+      cell.textContent = k;
+      cell.classList.add('filled','pop');
+      cell.addEventListener('animationend', () => cell.classList.remove('pop'), { once:true });
+      curCol++;
+    }
+  }
+
+  function shakeRow() {
+    cells[curRow].forEach(c => {
+      c.classList.add('shake');
+      c.addEventListener('animationend', () => c.classList.remove('shake'), { once:true });
+    });
+  }
+
+  function submit() {
+    const guess  = guesses[curRow].join('');
+    const result = scoreGuess(guess, word);
+
+    result.forEach((state, c) => {
+      setTimeout(() => {
+        const cell = cells[curRow][c];
+        cell.classList.add('flip');
+        cell.addEventListener('animationend', () => {
+          cell.classList.remove('flip');
+          cell.classList.add(state);
+        }, { once:true });
+        // Update key colours (correct > present > absent)
+        const key = guess[c];
+        const kEl = keyEls[key];
+        if (kEl && !kEl.classList.contains('correct')) {
+          if (state==='correct')                         kEl.classList.add('correct');
+          else if (state==='present'&&!kEl.classList.contains('present')) kEl.classList.add('present');
+          else if (state==='absent' &&!kEl.classList.contains('present')) kEl.classList.add('absent');
+        }
+      }, c * 110);
+    });
+
+    setTimeout(() => {
+      if (guess === word) {
+        done = true;
+        const msgs = ['Genius!','Brilliant!','Great!','Nice!','Phew!','Lucky!'];
+        setMsg(msgs[curRow] || 'Correct!', '#4ade80');
+        document.getElementById('btn-new-game').classList.add('visible');
+      } else if (curRow === ROWS-1) {
+        done = true;
+        setMsg('😔 The word was ' + word, '#f87171');
+        document.getElementById('btn-new-game').classList.add('visible');
+      }
+      curRow++; curCol = 0;
+    }, COLS * 110 + 200);
+  }
+
+  function scoreGuess(guess, answer) {
+    const result = Array(COLS).fill('absent');
+    const pool   = [...answer];
+    // Pass 1: correct
+    for (let i=0; i<COLS; i++) {
+      if (guess[i]===answer[i]) { result[i]='correct'; pool[i]=null; }
+    }
+    // Pass 2: present
+    for (let i=0; i<COLS; i++) {
+      if (result[i]==='correct') continue;
+      const idx = pool.indexOf(guess[i]);
+      if (idx !== -1) { result[i]='present'; pool[idx]=null; }
+    }
+    return result;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey||e.metaKey||e.altKey) return;
+    const k = e.key.toUpperCase();
+    if (k==='BACKSPACE')     handleKey('⌫');
+    else if (k==='ENTER')    handleKey('ENTER');
+    else if (/^[A-Z]$/.test(k)) handleKey(k);
+  });
+
+  document.getElementById('btn-new-top').addEventListener('click', newGame);
+  document.getElementById('btn-new-game').addEventListener('click', newGame);
+
+  newGame();
+})();
+</script>
+</body>
+</html>
