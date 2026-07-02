@@ -1,0 +1,67 @@
+/* anigames/games/snake/style.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overscroll-behavior: none; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #0d0d18; color: #e8e6ff;
+  min-height: 100dvh; display: flex; flex-direction: column;
+  align-items: center; padding: 18px 16px 48px;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.back-btn {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none; font-size: .82rem; font-weight: 800;
+  color: rgba(74,222,128,.8); margin-bottom: 10px; transition: color .15s;
+}
+.back-btn:hover { color: #4ade80; }
+.topbar {
+  width: min(96vw,420px); display: flex;
+  justify-content: space-between; align-items: center; margin-bottom: 12px;
+}
+.title { font-size: 1.8rem; font-weight: 900; color: #4ade80; text-shadow: 0 0 24px rgba(74,222,128,.35); letter-spacing: -.02em; }
+.stat-row { display: flex; gap: 8px; }
+.stat-pill {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 999px; padding: 5px 12px;
+  font-size: .85rem; font-weight: 900; display: flex; align-items: center; gap: 5px;
+}
+.canvas-wrap {
+  position: relative; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 16px 56px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.07);
+  touch-action: none;
+}
+canvas { display: block; }
+.overlay {
+  position: absolute; inset: 0; background: rgba(13,13,24,.88);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; padding: 24px; text-align: center;
+}
+.overlay-emoji { font-size: 3rem; line-height: 1; }
+.overlay h2 { font-size: 1.75rem; font-weight: 900; color: #fff; }
+.overlay p  { font-size: .88rem; color: rgba(232,230,255,.55); font-weight: 600; }
+.btn-play {
+  background: linear-gradient(135deg, #14532d, #4ade80);
+  color: #fff; border: none; border-radius: 12px; padding: 12px 32px;
+  font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 900;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 20px rgba(74,222,128,.3); transition: .15s;
+}
+.btn-play:active { transform: scale(.96); }
+.dpad {
+  display: none; margin-top: 16px;
+  display: grid; grid-template-columns: 52px 52px 52px;
+  grid-template-rows: 52px 52px; gap: 8px;
+}
+@media (hover: none) and (pointer: coarse) { .dpad { display: grid; } .kb-hint { display: none; } }
+.dpad-btn {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.11);
+  border-radius: 14px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; color: #e8e6ff; transition: .1s;
+}
+.dpad-btn:active { background: rgba(74,222,128,.2); }
+#d-up    { grid-column: 2; grid-row: 1; }
+#d-left  { grid-column: 1; grid-row: 2; }
+#d-down  { grid-column: 2; grid-row: 2; }
+#d-right { grid-column: 3; grid-row: 2; }
+.kb-hint { margin-top: 14px; font-size: .74rem; color: rgba(232,230,255,.35); font-weight: 600; text-align: center; }
