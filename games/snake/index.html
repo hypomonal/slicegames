@@ -1,0 +1,45 @@
+<!-- anigames/games/snake/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🐍 Snake · AniGames</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="back-btn" href="../../index.html">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    AniGames
+  </a>
+  <div class="topbar">
+    <h1 class="title">🐍 Snake</h1>
+    <div class="stat-row">
+      <div class="stat-pill">⭐ <span id="score">0</span></div>
+      <div class="stat-pill">🏆 <span id="best">0</span></div>
+      <div class="stat-pill">⚡ <span id="speed">1</span></div>
+    </div>
+  </div>
+  <div class="canvas-wrap" id="canvas-wrap">
+    <canvas id="canvas"></canvas>
+    <div class="overlay" id="overlay">
+      <div class="overlay-emoji">🐍</div>
+      <h2 id="ol-title">Snake</h2>
+      <p id="ol-msg">Eat 🍎 grow longer · don't crash! 💥</p>
+      <button class="btn-play" id="btn-start">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2l10 6-10 6V2z" fill="currentColor"/></svg>
+        Play!
+      </button>
+    </div>
+  </div>
+  <div class="dpad" id="dpad">
+    <button class="dpad-btn" id="d-up"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 15V5M5 10l5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="dpad-btn" id="d-left"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15 10H5M10 5l-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="dpad-btn" id="d-down"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 5v10M5 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="dpad-btn" id="d-right"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 10h10M10 15l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+  <p class="kb-hint">Arrow keys or WASD to move 🎮</p>
+  <script src="game.js"></script>
+</body>
+</html>
