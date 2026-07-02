@@ -1,0 +1,67 @@
+<!-- anigames/games/tetris/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🧩 Tetris · AniGames</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="back-btn" href="../../index.html">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    AniGames
+  </a>
+  <div class="topbar">
+    <h1 class="title">🧩 Tetris</h1>
+    <button class="btn-icon" id="btn-pause" aria-label="Pause">
+      <svg id="pause-svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
+        <rect x="3" y="2" width="4" height="13" rx="1.5" fill="currentColor"/>
+        <rect x="10" y="2" width="4" height="13" rx="1.5" fill="currentColor"/>
+      </svg>
+    </button>
+  </div>
+  <div class="game-area">
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="board"></canvas>
+      <div class="overlay" id="overlay">
+        <div class="overlay-emoji">🧩</div>
+        <h2 id="ol-title">Tetris</h2>
+        <p id="ol-msg">Stack blocks and clear lines! ✨</p>
+        <button class="btn-play" id="btn-start">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 1.5l9 5-9 5v-10z" fill="currentColor"/></svg>
+          Play!
+        </button>
+      </div>
+    </div>
+    <div class="side">
+      <div class="side-box"><div class="side-lbl">⭐ Score</div><div class="side-val" id="score">0</div></div>
+      <div class="side-box"><div class="side-lbl">🏆 Best</div><div class="side-val" id="best">0</div></div>
+      <div class="side-box"><div class="side-lbl">🚀 Level</div><div class="side-val" id="level">1</div></div>
+      <div class="side-box"><div class="side-lbl">✨ Lines</div><div class="side-val" id="lines">0</div></div>
+      <div class="side-box"><div class="side-lbl">👀 Next</div><canvas id="next"></canvas></div>
+      <button class="btn-new" id="btn-new">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7a6 6 0 016-6 6 6 0 014 1.5M13 7a6 6 0 01-6 6 6 6 0 01-4-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11 1v3H8M3 13v-3h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        New
+      </button>
+    </div>
+  </div>
+  <div class="mobile-ctrl">
+    <div class="ctrl-row"><button class="ctrl-btn" id="c-rot" aria-label="Rotate">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3a8 8 0 018 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16.5 7.5l2.5-4 1 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button></div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn" id="c-left" aria-label="Left"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M16 11H6M11 6l-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="ctrl-btn" id="c-down" aria-label="Soft drop"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 6v10M6 12l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="ctrl-btn" id="c-right" aria-label="Right"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M6 11h10M11 6l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="ctrl-row"><button class="ctrl-btn wide" id="c-drop" aria-label="Hard drop">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M3 8l5 6 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Drop
+    </button></div>
+  </div>
+  <p class="kb-hint">← → move · ↑ rotate · ↓ soft drop · Space hard drop · P pause 🎮</p>
+  <script src="game.js"></script>
+</body>
+</html>
