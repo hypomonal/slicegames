@@ -21,6 +21,43 @@
   let best = +localStorage.getItem('snake-best') || 0;
   bestEl.textContent = best;
 
+
+  /* ── AUTO-SAVE / RESUME ── */
+  const SAVE_KEY = 'snake-save';
+
+  function saveGame() {
+    if (!running) return;
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      snake, dir, nextDir, food, score, speed, stepMs
+    }));
+  }
+
+  function loadSave() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  function clearSave() { localStorage.removeItem(SAVE_KEY); }
+
+  function resumeGame(save) {
+    snake   = save.snake;
+    dir     = save.dir;
+    nextDir = save.nextDir;
+    food    = save.food;
+    score   = save.score;
+    speed   = save.speed;
+    stepMs  = save.stepMs;
+    running = true;
+    scoreEl.textContent = score;
+    speedEl.textContent = speed;
+    overlay.style.display = 'none';
+    lastStep = performance.now();
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(loop);
+  }
+
   const rand = n => Math.floor(Math.random() * n);
 
   function placeFood() {
@@ -50,6 +87,7 @@
   }
 
   function step() {
+    saveGame(); // auto-save every tick
     dir = { ...nextDir };
     const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
     if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) return gameOver();
@@ -94,6 +132,7 @@
 
   function gameOver() {
     running = false;
+    clearSave();
     cancelAnimationFrame(raf);
     draw();
     olTitle.textContent = '💀 Game Over';
@@ -134,4 +173,28 @@
       : (dy > 0 ? {x:0,y:1} : {x:0,y:-1});
     if (running && (d.x !== -dir.x || d.y !== -dir.y)) nextDir = d;
   }, { passive: true });
+
+  /* ── CHECK FOR SAVED GAME ── */
+  const existingSave = loadSave();
+  if (existingSave) {
+    olTitle.textContent = '🐍 Resume Game?';
+    olMsg.textContent   = '⭐ Score: ' + existingSave.score + ' · ⚡ Speed: ' + existingSave.speed;
+    const btnStart = document.getElementById('btn-start');
+    btnStart.textContent = '▶ Resume';
+
+    // Add a "New Game" secondary button
+    const btnNew2 = document.createElement('button');
+    btnNew2.className   = 'btn-play';
+    btnNew2.style.cssText = 'background:rgba(255,255,255,.12);box-shadow:none;margin-top:4px;';
+    btnNew2.textContent = '🔄 New Game';
+    btnNew2.addEventListener('click', () => { clearSave(); overlay.style.display='none'; init(); });
+    overlay.appendChild(btnNew2);
+
+    document.getElementById('btn-start').addEventListener('click', () => resumeGame(existingSave), { once: true });
+  }
+
+  /* ── Save on page hide ── */
+  document.addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
+  window.addEventListener('pagehide', saveGame);
+
 })();
