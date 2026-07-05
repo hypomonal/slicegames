@@ -37,6 +37,45 @@
   bestEl.textContent = best;
   let board, piece, nextPiece, score, level, lines, running, paused, dropInt, lastDrop, raf;
 
+
+  /* ── AUTO-SAVE / RESUME ── */
+  const SAVE_KEY = 'tetris-save';
+
+  function saveGame() {
+    if (!running || paused) return;
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      board, score, level, lines, dropInt,
+      piece: piece ? { color: piece.color, shape: piece.shape, x: piece.x, y: piece.y } : null,
+      nextPiece: nextPiece ? { color: nextPiece.color, shape: nextPiece.shape } : null,
+    }));
+  }
+
+  function loadSave() {
+    try { const r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null; }
+    catch { return null; }
+  }
+
+  function clearSave() { localStorage.removeItem(SAVE_KEY); }
+
+  function resumeGame(save) {
+    board      = save.board;
+    score      = save.score;
+    level      = save.level;
+    lines      = save.lines;
+    dropInt    = save.dropInt;
+    piece      = save.piece;
+    nextPiece  = save.nextPiece;
+    running    = true; paused = false;
+    scoreEl.textContent = score.toLocaleString();
+    levelEl.textContent = level;
+    linesEl.textContent = lines;
+    overlay.style.display = 'none';
+    setPauseIcon(false);
+    lastDrop = performance.now();
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(loop);
+  }
+
   const emptyBoard = () => Array.from({length:ROWS}, () => Array(COLS).fill(0));
   const randPiece  = () => { const p=PIECES[Math.floor(Math.random()*PIECES.length)]; return {color:p.color, shape:p.shape.map(r=>[...r])}; };
   const rotate     = s => s[0].map((_,c) => s.map(r=>r[c]).reverse());
@@ -66,6 +105,7 @@
       if (score>best) { best=score; bestEl.textContent=best.toLocaleString(); localStorage.setItem('tetris-best',best); }
     }
     spawnPiece();
+    saveGame();
   }
 
   function tryRotate() {
@@ -137,6 +177,7 @@
 
   function endGame() {
     running=false;
+    clearSave();
     olTitle.textContent='💀 Game Over';
     olMsg.textContent='⭐ Score: '+score.toLocaleString()+' · 🏆 Best: '+best.toLocaleString();
     btnStart.textContent='🔄 Play Again';
@@ -188,4 +229,25 @@
   }, {passive:true});
 
   draw();
+
+  /* ── CHECK FOR SAVED GAME ── */
+  const existingSave = loadSave();
+  if (existingSave) {
+    document.getElementById('ol-title').textContent = '🧩 Resume?';
+    document.getElementById('ol-msg').textContent   = '⭐ ' + (+existingSave.score).toLocaleString() + ' · 🚀 Lvl ' + existingSave.level;
+    btnStart.textContent = '▶ Resume';
+
+    const btnNew2 = document.createElement('button');
+    btnNew2.className   = 'btn-play';
+    btnNew2.style.cssText = 'background:rgba(255,255,255,.1);box-shadow:none;margin-top:4px;';
+    btnNew2.textContent = '🔄 New Game';
+    btnNew2.addEventListener('click', () => { clearSave(); overlay.style.display='none'; init(); });
+    overlay.appendChild(btnNew2);
+
+    btnStart.addEventListener('click', () => resumeGame(existingSave), { once: true });
+  }
+
+  document.addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
+  window.addEventListener('pagehide', saveGame);
+
 })();
