@@ -1,784 +1,155 @@
-<!-- anigames/games/ludo/index.html -->
+<!-- slicegames/games/ludo/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Ludo · AniGames</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
-<style>
-/* ── Reset & base ── */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overscroll-behavior:none}
-body{
-  font-family:'Nunito',sans-serif;
-  background:#0d0d18;
-  color:#e8e6ff;
-  min-height:100dvh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:16px 12px 48px;
-  user-select:none;
-  -webkit-tap-highlight-color:transparent;
-}
-
-/* Back button */
-.back-btn{
-  align-self:flex-start;
-  display:inline-flex;align-items:center;gap:6px;
-  text-decoration:none;font-size:.82rem;font-weight:800;
-  color:rgba(251,146,60,.8);margin-bottom:10px;transition:color .15s;
-}
-.back-btn:hover{color:#fb923c}
-.back-btn svg{transition:transform .15s}
-.back-btn:hover svg{transform:translateX(-2px)}
-
-/* Top bar */
-.topbar{
-  width:min(96vw,520px);
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:12px;
-}
-.title{font-size:1.8rem;font-weight:900;color:#fb923c;
-  text-shadow:0 0 24px rgba(251,146,60,.35);letter-spacing:-.02em}
-.btn-icon{
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-  color:#e8e6ff;border-radius:10px;width:38px;height:38px;
-  font-size:.85rem;font-weight:800;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:.15s;
-}
-.btn-icon:active{transform:scale(.92)}
-
-/* ── LAYOUT: board in centre, dice boxes in corners ── */
-.game-layout{
-  position:relative;
-  width:min(96vw,480px);
-  height:min(96vw,480px);
-}
-
-/* Dice corner boxes */
-.dice-corner{
-  position:absolute;
-  width:96px;height:96px;
-  background:rgba(255,255,255,.05);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  border:1.5px solid rgba(255,255,255,.1);
-  border-radius:16px;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:6px;
-  transition:border-color .2s,background .2s,box-shadow .2s;
-  padding:8px;
-}
-.dice-corner.active-turn{
-  box-shadow:0 0 0 2px var(--player-color),
-             0 0 20px color-mix(in srgb,var(--player-color) 40%,transparent);
-}
-.dice-corner.active-turn .dice-face{
-  cursor:pointer;
-}
-.dice-corner.active-turn .dice-face:hover{
-  transform:scale(1.08);
-}
-
-/* Corner positions */
-.corner-tl{top:0;left:0}
-.corner-tr{top:0;right:0}
-.corner-bl{bottom:0;left:0}
-.corner-br{bottom:0;right:0}
-
-.player-label{
-  font-size:.62rem;font-weight:900;
-  text-transform:uppercase;letter-spacing:.07em;
-  color:var(--player-color);
-  line-height:1;
-}
-.dice-face{
-  width:52px;height:52px;
-  background:rgba(255,255,255,.08);
-  border:1.5px solid rgba(255,255,255,.15);
-  border-radius:10px;
-  display:grid;
-  align-items:center;justify-items:center;
-  transition:transform .15s,background .15s;
-  flex-shrink:0;
-}
-.dice-face svg { pointer-events:none; }
-.roll-btn{
-  font-size:.65rem;font-weight:900;
-  color:rgba(232,230,255,.5);
-  line-height:1;
-  letter-spacing:.04em;
-  text-transform:uppercase;
-}
-.dice-corner.active-turn .roll-btn{
-  color:var(--player-color);
-}
-
-/* Board canvas in centre */
-.board-canvas-wrap{
-  position:absolute;
-  /* sits between the corner boxes */
-  top:104px;left:104px;
-  right:104px;bottom:104px;
-}
-#board-canvas{
-  width:100%;height:100%;
-  border-radius:6px;
-  display:block;
-}
-
-/* ── Log ── */
-.log-wrap{
-  width:min(96vw,480px);
-  background:rgba(255,255,255,.04);
-  backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:14px;
-  padding:10px 14px;
-  margin-top:12px;
-  min-height:44px;
-}
-.log-text{
-  font-size:.82rem;font-weight:700;
-  color:rgba(232,230,255,.6);
-  line-height:1.4;
-}
-
-/* ── Controls strip ── */
-.controls-strip{
-  width:min(96vw,480px);
-  display:flex;gap:10px;align-items:center;
-  margin-top:10px;
-}
-.btn-primary{
-  flex:1;
-  background:linear-gradient(135deg,#92400e,#fb923c);
-  color:#fff;border:none;border-radius:12px;
-  padding:11px 0;font-family:'Nunito',sans-serif;
-  font-size:.95rem;font-weight:900;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  box-shadow:0 4px 18px rgba(251,146,60,.3);
-  transition:opacity .15s,transform .1s;
-}
-.btn-primary:hover{opacity:.9}
-.btn-primary:active{transform:scale(.97)}
-
-/* ── Win overlay ── */
-.win-overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(13,13,24,.88);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  z-index:50;align-items:center;justify-content:center;
-}
-.win-overlay.show{display:flex}
-.win-card{
-  background:rgba(255,255,255,.07);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border:1.5px solid rgba(255,255,255,.14);
-  border-radius:24px;
-  padding:36px 32px;
-  text-align:center;
-  display:flex;flex-direction:column;gap:14px;align-items:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.5);
-  max-width:320px;width:90vw;
-}
-.win-icon{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
-.win-card h2{font-size:1.8rem;font-weight:900;color:#fff}
-.win-card p{font-size:.9rem;color:rgba(232,230,255,.6);font-weight:600}
-
-/* ── Dice rolling animation ── */
-@keyframes dice-roll{
-  0%  {transform:rotate(0deg) scale(1)}
-  25% {transform:rotate(15deg) scale(1.1)}
-  50% {transform:rotate(-12deg) scale(0.95)}
-  75% {transform:rotate(8deg) scale(1.08)}
-  100%{transform:rotate(0deg) scale(1)}
-}
-.dice-rolling{animation:dice-roll .45s cubic-bezier(.36,.07,.19,.97)}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Ludo 🎲 · SliceGames</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<a class="back-btn" href="../../index.html">
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-  AniGames
-</a>
+  <a class="back-btn" href="../../index.html">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    SliceGames
+  </a>
 
-<div class="topbar">
-  <div class="title">Ludo</div>
-  <div style="display:flex;gap:8px">
-    <button class="btn-icon" id="btn-new-top" title="New game">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 016-6 6 6 0 014.5 2H11M14 8a6 6 0 01-6 6 6 6 0 01-4.5-2H5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12.5 1v3.5H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 15v-3.5H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-  </div>
-</div>
-
-<!-- Main layout: corner dice boxes + centre board -->
-<div class="game-layout" id="game-layout">
-
-  <!-- Red — top-left -->
-  <div class="dice-corner corner-tl" id="dc-red" style="--player-color:#f87171">
-    <div class="player-label">Red</div>
-    <div class="dice-face" id="dice-red">
-      <svg id="dice-svg-red" width="36" height="36" viewBox="0 0 36 36" fill="none">
-        <rect x="1" y="1" width="34" height="34" rx="6" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
-        <circle cx="18" cy="18" r="3" fill="#f87171"/>
-      </svg>
+  <!-- MODE PICKER -->
+  <div class="mode-screen" id="mode-screen">
+    <div class="mode-logo">🎲</div>
+    <h1 class="mode-title">Ludo</h1>
+    <p class="mode-sub">Choose your game mode!</p>
+    <div class="mode-grid">
+      <button class="mode-btn" data-mode="1v1-human">
+        <span class="mode-icon">🧑‍🤝‍🧑</span>
+        <span class="mode-name">1 v 1</span>
+        <span class="mode-desc">2 Human Players</span>
+      </button>
+      <button class="mode-btn" data-mode="1v1-cpu">
+        <span class="mode-icon">🤖</span>
+        <span class="mode-name">vs CPU</span>
+        <span class="mode-desc">You vs Computer</span>
+      </button>
+      <button class="mode-btn" data-mode="3-human">
+        <span class="mode-icon">👥</span>
+        <span class="mode-name">3 Players</span>
+        <span class="mode-desc">3 Human Players</span>
+      </button>
+      <button class="mode-btn" data-mode="4-human">
+        <span class="mode-icon">👨‍👩‍👧‍👦</span>
+        <span class="mode-name">4 Players</span>
+        <span class="mode-desc">4 Human Players</span>
+      </button>
+      <button class="mode-btn" data-mode="2v2-cpu">
+        <span class="mode-icon">🤝</span>
+        <span class="mode-name">2 vs 2 CPU</span>
+        <span class="mode-desc">2 Human + 2 CPU</span>
+      </button>
+      <button class="mode-btn" data-mode="1v3-cpu">
+        <span class="mode-icon">💪</span>
+        <span class="mode-name">1 vs 3 CPU</span>
+        <span class="mode-desc">Solo vs 3 Computers</span>
+      </button>
     </div>
-    <div class="roll-btn" id="roll-label-red">Waiting</div>
   </div>
 
-  <!-- Blue — top-right -->
-  <div class="dice-corner corner-tr" id="dc-blue" style="--player-color:#60a5fa">
-    <div class="player-label">Blue</div>
-    <div class="dice-face" id="dice-blue">
-      <svg id="dice-svg-blue" width="36" height="36" viewBox="0 0 36 36" fill="none">
-        <rect x="1" y="1" width="34" height="34" rx="6" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
-        <circle cx="18" cy="18" r="3" fill="#60a5fa"/>
-      </svg>
+  <!-- GAME SCREEN -->
+  <div class="game-screen" id="game-screen" style="display:none">
+
+    <div class="game-topbar">
+      <button class="back-to-menu" id="btn-menu">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Menu
+      </button>
+      <h1 class="game-title">🎲 Ludo</h1>
+      <button class="btn-icon-sm" id="btn-restart">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <path d="M1.5 7.5a6 6 0 016-6 6 6 0 014 1.5M13.5 7.5a6 6 0 01-6 6 6 6 0 01-4-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M11.5 1.5v3h-3M3.5 13.5v-3h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     </div>
-    <div class="roll-btn" id="roll-label-blue">Waiting</div>
-  </div>
 
-  <!-- Green — bottom-right -->
-  <div class="dice-corner corner-br" id="dc-green" style="--player-color:#4ade80">
-    <div class="player-label">Green</div>
-    <div class="dice-face" id="dice-green">
-      <svg id="dice-svg-green" width="36" height="36" viewBox="0 0 36 36" fill="none">
-        <rect x="1" y="1" width="34" height="34" rx="6" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
-        <circle cx="18" cy="18" r="3" fill="#4ade80"/>
-      </svg>
+    <!-- 4-corner dice layout -->
+    <div class="arena" id="arena">
+
+      <!-- Red dice — top left -->
+      <div class="dice-zone dz-tl" id="dz-red">
+        <div class="dz-label" id="lbl-red">🔴 Red</div>
+        <div class="dz-face" id="df-red" role="button" aria-label="Roll Red dice">
+          <svg id="dsv-red" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="2" y="2" width="40" height="40" rx="8" fill="rgba(255,255,255,.07)" stroke="rgba(248,113,113,.5)" stroke-width="1.8"/>
+            <circle cx="22" cy="22" r="4" fill="#f87171"/>
+          </svg>
+        </div>
+        <div class="dz-status" id="dst-red">Waiting…</div>
+      </div>
+
+      <!-- Blue dice — top right -->
+      <div class="dice-zone dz-tr" id="dz-blue">
+        <div class="dz-label" id="lbl-blue">🔵 Blue</div>
+        <div class="dz-face" id="df-blue" role="button" aria-label="Roll Blue dice">
+          <svg id="dsv-blue" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="2" y="2" width="40" height="40" rx="8" fill="rgba(255,255,255,.07)" stroke="rgba(96,165,250,.5)" stroke-width="1.8"/>
+            <circle cx="22" cy="22" r="4" fill="#60a5fa"/>
+          </svg>
+        </div>
+        <div class="dz-status" id="dst-blue">Waiting…</div>
+      </div>
+
+      <!-- Green dice — bottom right -->
+      <div class="dice-zone dz-br" id="dz-green">
+        <div class="dz-label" id="lbl-green">🟢 Green</div>
+        <div class="dz-face" id="df-green" role="button" aria-label="Roll Green dice">
+          <svg id="dsv-green" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="2" y="2" width="40" height="40" rx="8" fill="rgba(255,255,255,.07)" stroke="rgba(74,222,128,.5)" stroke-width="1.8"/>
+            <circle cx="22" cy="22" r="4" fill="#4ade80"/>
+          </svg>
+        </div>
+        <div class="dz-status" id="dst-green">Waiting…</div>
+      </div>
+
+      <!-- Yellow dice — bottom left -->
+      <div class="dice-zone dz-bl" id="dz-yellow">
+        <div class="dz-label" id="lbl-yellow">🟡 Yellow</div>
+        <div class="dz-face" id="df-yellow" role="button" aria-label="Roll Yellow dice">
+          <svg id="dsv-yellow" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="2" y="2" width="40" height="40" rx="8" fill="rgba(255,255,255,.07)" stroke="rgba(251,191,36,.5)" stroke-width="1.8"/>
+            <circle cx="22" cy="22" r="4" fill="#fbbf24"/>
+          </svg>
+        </div>
+        <div class="dz-status" id="dst-yellow">Waiting…</div>
+      </div>
+
+      <!-- Board canvas -->
+      <div class="board-wrap">
+        <canvas id="board-canvas"></canvas>
+      </div>
     </div>
-    <div class="roll-btn" id="roll-label-green">Waiting</div>
-  </div>
 
-  <!-- Yellow — bottom-left -->
-  <div class="dice-corner corner-bl" id="dc-yellow" style="--player-color:#fbbf24">
-    <div class="player-label">Yellow</div>
-    <div class="dice-face" id="dice-yellow">
-      <svg id="dice-svg-yellow" width="36" height="36" viewBox="0 0 36 36" fill="none">
-        <rect x="1" y="1" width="34" height="34" rx="6" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
-        <circle cx="18" cy="18" r="3" fill="#fbbf24"/>
-      </svg>
+    <!-- Log -->
+    <div class="log-box" id="log-box">
+      <span id="log-text">🎲 Game starting…</span>
     </div>
-    <div class="roll-btn" id="roll-label-yellow">Waiting</div>
+
   </div>
 
-  <!-- Board canvas in centre -->
-  <div class="board-canvas-wrap">
-    <canvas id="board-canvas"></canvas>
-  </div>
-
-</div>
-
-<div class="log-wrap">
-  <div class="log-text" id="log">🎲 Welcome to Ludo! 🔴 Red starts — tap their dice to roll!</div>
-</div>
-
-<div class="controls-strip">
-  <button class="btn-primary" id="btn-new">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 016-6 6 6 0 014.5 2H11M14 8a6 6 0 01-6 6 6 6 0 01-4.5-2H5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12.5 1v3.5H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 15v-3.5H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    New Game
-  </button>
-</div>
-
-<!-- Win overlay -->
-<div class="win-overlay" id="win-overlay">
-  <div class="win-card">
-    <div class="win-icon" id="win-icon" style="background:rgba(255,255,255,.1)">
-      <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 4l3.6 7.6L30 13l-6 6.2 1.4 8.8L18 24l-7.4 4 1.4-8.8L6 13l8.4-1.4L18 4z" fill="#fbbf24" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/></svg>
+  <!-- WIN OVERLAY -->
+  <div class="win-overlay" id="win-overlay">
+    <div class="win-card">
+      <div class="win-big" id="win-big">🎉</div>
+      <h2 id="win-title">Red Wins!</h2>
+      <p id="win-sub">All pieces made it home! 🏁</p>
+      <button class="btn-primary" id="btn-win-menu">Back to Menu</button>
+      <button class="btn-secondary" id="btn-win-restart">Play Again 🔄</button>
     </div>
-    <h2 id="win-title">Red Wins!</h2>
-    <p id="win-sub">All pieces made it home!</p>
-    <button class="btn-primary" id="btn-win-new" style="width:100%;justify-content:center">Play Again</button>
   </div>
-</div>
 
-<script>
-// anigames/games/ludo/index.html — inline script
-
-(() => {
-'use strict';
-
-/* ── Constants ── */
-const COLORS = ['red','blue','green','yellow'];
-const PLAYER_HEX = { red:'#f87171', blue:'#60a5fa', green:'#4ade80', yellow:'#fbbf24' };
-const PLAYER_DARK= { red:'#7f1d1d', blue:'#1e3a8a', green:'#14532d', yellow:'#78350f' };
-
-/*
-  Ludo board: 15×15 grid.
-  Outer track: 52 squares, numbered 0-51.
-  Each player enters at their start and travels 51 steps + 6 home column steps = done.
-
-  Entry squares (index on outer track):
-    Red    → 0   (col 6, row 13)
-    Blue   → 13  (col 1, row 6)  — rotated
-    Green  → 26  (col 8, row 1)
-    Yellow → 39  (col 13, row 8)
-
-  The outer track (row,col) for indices 0..51:
-*/
-const OUTER = [
-  // 0-5: left side going up (col 6, rows 13→8)
-  [13,6],[12,6],[11,6],[10,6],[9,6],[8,6],
-  // 6-11: top-left going left (row 8, cols 5→0)
-  [8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
-  // 12-13: corner + go up (rows 7,6, col 0)
-  [7,0],[6,0],
-  // 14-19: top side going right (row 6, cols 1→6)
-  [6,1],[6,2],[6,3],[6,4],[6,5],[6,6],
-  // 20-25: left of top, going up (col 6, rows 5→0)
-  [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
-  // 26-27: top corner
-  [0,7],[0,8],
-  // 28-33: top-right going down (col 8, rows 1→6)
-  [1,8],[2,8],[3,8],[4,8],[5,8],[6,8],
-  // 34-39: right side going right (row 6, cols 9→14)
-  [6,9],[6,10],[6,11],[6,12],[6,13],[6,14],
-  // 40-41: right corner
-  [7,14],[8,14],
-  // 42-47: right side going left (row 8, cols 13→8)
-  [8,13],[8,12],[8,11],[8,10],[8,9],[8,8],
-  // 48-51: bottom-right going down (col 8, rows 9→12... then home)
-  [9,8],[10,8],[11,8],[12,8],
-  // extra to complete 52 squares
-  [13,8],[14,8],[14,7],[13,6],
-].slice(0,52);
-
-// Pad OUTER to exactly 52 if needed
-while(OUTER.length < 52) OUTER.push(OUTER[OUTER.length-1]);
-
-// Home column paths (6 steps leading to centre)
-const HOME_COLS = {
-  red:    [[13,7],[12,7],[11,7],[10,7],[9,7],[8,7]],
-  blue:   [[7,1],[7,2],[7,3],[7,4],[7,5],[7,6]],
-  green:  [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]],
-  yellow: [[7,13],[7,12],[7,11],[7,10],[7,9],[7,8]],
-};
-
-// Entry index on OUTER for each player
-const ENTRY = { red:0, blue:13, green:26, yellow:39 };
-
-// Safe squares set (row*15+col)
-const SAFE_SET = new Set([
-  8*15+6, 6*15+2, 2*15+6, 6*15+12,
-  6*15+8, 12*15+8, 8*15+12, 8*15+2,
-]);
-
-// Home base cell positions (4 pieces per player, row×15+col for quick lookup)
-const HOME_BASE_POS = {
-  red:    [[2,2],[3,2],[2,3],[3,3]],
-  blue:   [[2,11],[3,11],[2,12],[3,12]],
-  green:  [[11,11],[12,11],[11,12],[12,12]],
-  yellow: [[11,2],[12,2],[11,3],[12,3]],
-};
-
-/* ── Canvas setup ── */
-const canvas = document.getElementById('board-canvas');
-const ctx    = canvas.getContext('2d');
-
-function resizeCanvas() {
-  const wrap = canvas.parentElement;
-  const size = wrap.clientWidth;
-  canvas.width  = size;
-  canvas.height = size;
-}
-resizeCanvas();
-window.addEventListener('resize', () => { resizeCanvas(); draw(); });
-
-/* ── State ── */
-let pieces   = {};   // color → [{pos, done}]  pos: -1=base, 0-51=outer, 52-57=home col, 58=finished
-let curPlayer = 0;
-let rolled    = false;
-let diceVal   = 0;
-let gameOver  = false;
-let rolling   = false; // animation lock
-
-function initGame() {
-  pieces = {};
-  COLORS.forEach(col => {
-    pieces[col] = [0,1,2,3].map(() => ({ pos: -1, done: false }));
-  });
-  curPlayer = 0; rolled = false; diceVal = 0; gameOver = false; rolling = false;
-  document.getElementById('win-overlay').classList.remove('show');
-  setLog('Red\'s turn — tap the Red dice to roll!');
-  updateDiceUI();
-  draw();
-}
-
-/* ── Dice SVG dots ── */
-const DOT_POSITIONS = {
-  1: [[18,18]],
-  2: [[10,10],[26,26]],
-  3: [[10,10],[18,18],[26,26]],
-  4: [[10,10],[26,10],[10,26],[26,26]],
-  5: [[10,10],[26,10],[18,18],[10,26],[26,26]],
-  6: [[10,10],[26,10],[10,18],[26,18],[10,26],[26,26]],
-};
-
-function renderDiceSVG(color, value) {
-  const col = PLAYER_HEX[color];
-  const el  = document.getElementById(`dice-svg-${color}`);
-  if (!el) return;
-  const dots = value >= 1 ? DOT_POSITIONS[value] : null;
-  const dotHTML = dots
-    ? dots.map(([x,y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="${col}"/>`).join('')
-    : `<circle cx="18" cy="18" r="3" fill="${col}"/>`;
-  el.innerHTML = `
-    <rect x="1" y="1" width="34" height="34" rx="7"
-      fill="rgba(255,255,255,0.07)"
-      stroke="${col}" stroke-width="1.8"/>
-    ${dotHTML}
-  `;
-}
-
-function updateDiceUI() {
-  COLORS.forEach((col, i) => {
-    const dc    = document.getElementById(`dc-${col}`);
-    const label = document.getElementById(`roll-label-${col}`);
-    const face  = document.getElementById(`dice-${col}`);
-
-    const isActive = i === curPlayer && !gameOver;
-    dc.classList.toggle('active-turn', isActive);
-
-    if (i === curPlayer) {
-      if (!rolled) {
-        label.textContent = 'Tap to Roll';
-        face.style.cursor = 'pointer';
-        face.onclick = rollDice;
-      } else {
-        label.textContent = 'Pick piece';
-        face.style.cursor = 'default';
-        face.onclick = null;
-      }
-    } else {
-      label.textContent = 'Waiting';
-      face.style.cursor = 'default';
-      face.onclick = null;
-    }
-  });
-}
-
-function rollDice() {
-  if (rolling || rolled || gameOver) return;
-  rolling = true;
-
-  const color   = COLORS[curPlayer];
-  const diceEl  = document.getElementById(`dice-${color}`);
-  diceEl.classList.add('dice-rolling');
-  diceEl.addEventListener('animationend', () => {
-    diceEl.classList.remove('dice-rolling');
-    rolling = false;
-  }, { once: true });
-
-  diceVal = Math.floor(Math.random() * 6) + 1;
-  renderDiceSVG(color, diceVal);
-
-  const movable = pieces[color].filter((_, i) => canMove(color, i, diceVal));
-
-  if (movable.length === 0) {
-    setLog(`${cap(color)} rolled ${diceVal} — no valid moves. Skipping.`);
-    setTimeout(() => nextTurn(), 1100);
-  } else {
-    rolled = true;
-    setLog(`${cap(color)} rolled ${diceVal}! Pick a piece to move.`);
-    updateDiceUI();
-    draw();
-  }
-}
-
-function canMove(color, idx, roll) {
-  const p = pieces[color][idx];
-  if (p.done) return false;
-  if (p.pos === -1) return roll === 6;
-  const newPos = p.pos + roll;
-  return newPos <= 57; // 52+5 = last home col step
-}
-
-function movePiece(color, idx) {
-  if (!rolled || gameOver) return;
-  if (!canMove(color, idx, diceVal)) return;
-
-  const p = pieces[color][idx];
-  let msg = '';
-
-  if (p.pos === -1) {
-    p.pos = 0;
-    msg = `${cap(color)} piece ${idx+1} enters the board!`;
-  } else {
-    const newPos = p.pos + diceVal;
-    p.pos = newPos;
-    if (newPos >= 57) {
-      p.pos  = 57;
-      p.done = true;
-      msg = `${cap(color)} piece ${idx+1} finished! 🏁`;
-    } else {
-      msg = `${cap(color)} piece ${idx+1} moves ${diceVal} step${diceVal>1?'s':''}.`;
-      // Capture check
-      if (p.pos < 52) {
-        const [pr, pc] = OUTER[p.pos];
-        if (!SAFE_SET.has(pr*15+pc)) {
-          COLORS.forEach(otherCol => {
-            if (otherCol === color) return;
-            pieces[otherCol].forEach(op => {
-              if (op.done || op.pos < 0 || op.pos >= 52) return;
-              const [or, oc] = OUTER[op.pos];
-              if (or === pr && oc === pc) {
-                op.pos = -1; // send home
-                msg += ` Captured ${otherCol}!`;
-              }
-            });
-          });
-        }
-      }
-    }
-  }
-
-  setLog(msg);
-  rolled  = false;
-  diceVal = 0;
-  renderDiceSVG(color, 0);
-  draw();
-
-  // Check win
-  if (pieces[color].every(p => p.done)) {
-    gameOver = true;
-    setTimeout(() => showWin(color), 400);
-    return;
-  }
-
-  // Extra turn on 6
-  if (diceVal === 6 || msg.includes('enters')) {
-    setLog(msg + ' — Roll again! 🎲');
-    updateDiceUI();
-    return;
-  }
-  nextTurn();
-}
-
-function nextTurn() {
-  curPlayer = (curPlayer + 1) % 4;
-  rolled = false;
-  updateDiceUI();
-  setLog(`${cap(COLORS[curPlayer])}'s turn — tap their dice! 🎯`);
-  draw();
-}
-
-function showWin(color) {
-  const ov = document.getElementById('win-overlay');
-  const ic = document.getElementById('win-icon');
-  document.getElementById('win-title').textContent = `${cap(color)} Wins! 🏆`;
-  document.getElementById('win-sub').textContent   = 'All pieces made it home!';
-  ic.style.background = PLAYER_DARK[color];
-  ov.classList.add('show');
-}
-
-function setLog(msg) {
-  document.getElementById('log').textContent = msg;
-}
-function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-/* ── BOARD DRAWING ── */
-function getCellSize() { return canvas.width / 15; }
-
-function cellRect(r, c) {
-  const cs = getCellSize();
-  return { x: c*cs, y: r*cs, w: cs, h: cs };
-}
-
-// Cell background colour
-function cellBg(r, c) {
-  const cs = getCellSize();
-  // Home zones (6×6 corners minus border ring)
-  if (r>=1&&r<=4&&c>=1&&c<=4)   return '#7f1d1d'; // red home
-  if (r>=1&&r<=4&&c>=10&&c<=13) return '#1e3a8a'; // blue home
-  if (r>=10&&r<=13&&c>=10&&c<=13) return '#14532d'; // green home
-  if (r>=10&&r<=13&&c>=1&&c<=4)  return '#78350f'; // yellow home
-
-  // Outer border of home zones (darker shade)
-  if (r===0&&c<=5)  return '#450a0a';
-  if (r===0&&c>=9)  return '#172554';
-  if (r>=9&&c===14) return '#052e16';
-  if (r>=9&&c<=5&&r===14) return '#422006';
-
-  // Home column paths
-  if (r===7&&c>=1&&c<=5)   return 'rgba(248,113,113,.18)';
-  if (c===7&&r>=1&&r<=5)   return 'rgba(96,165,250,.18)';
-  if (r===7&&c>=9&&c<=13)  return 'rgba(74,222,128,.18)';
-  if (c===7&&r>=9&&r<=13)  return 'rgba(251,191,36,.18)';
-
-  // Centre triangle
-  if (r>=6&&r<=8&&c>=6&&c<=8) return '#1a1a2e';
-
-  // Safe squares (star)
-  if (SAFE_SET.has(r*15+c)) return 'rgba(255,255,255,.1)';
-
-  return 'rgba(255,255,255,.04)';
-}
-
-function drawStar(x, y, r) {
-  const spikes = 5, outerR = r, innerR = r*0.45;
-  ctx.beginPath();
-  for (let i = 0; i < spikes*2; i++) {
-    const angle = (i*Math.PI/spikes) - Math.PI/2;
-    const rad = i%2===0 ? outerR : innerR;
-    i===0 ? ctx.moveTo(x+rad*Math.cos(angle), y+rad*Math.sin(angle))
-           : ctx.lineTo(x+rad*Math.cos(angle), y+rad*Math.sin(angle));
-  }
-  ctx.closePath();
-}
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const cs = getCellSize();
-
-  // Draw board cells
-  for (let r = 0; r < 15; r++) {
-    for (let c = 0; c < 15; c++) {
-      const rect = cellRect(r,c);
-      ctx.fillStyle = cellBg(r,c);
-      ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-
-      // Grid lines
-      ctx.strokeStyle = 'rgba(255,255,255,0.07)';
-      ctx.lineWidth   = 0.5;
-      ctx.strokeRect(rect.x+0.25, rect.y+0.25, rect.w-0.5, rect.h-0.5);
-
-      // Stars on safe squares
-      if (SAFE_SET.has(r*15+c)) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(255,255,200,0.5)';
-        drawStar(rect.x+cs/2, rect.y+cs/2, cs*0.28);
-        ctx.fill();
-        ctx.restore();
-      }
-    }
-  }
-
-  // Draw home zone circles (inner)
-  const homeZones = [
-    { col:'red',    rows:[1,4], cols:[1,4], hex:PLAYER_HEX.red    },
-    { col:'blue',   rows:[1,4], cols:[10,13], hex:PLAYER_HEX.blue  },
-    { col:'green',  rows:[10,13],cols:[10,13], hex:PLAYER_HEX.green },
-    { col:'yellow', rows:[10,13],cols:[1,4], hex:PLAYER_HEX.yellow },
-  ];
-  homeZones.forEach(({rows, cols, hex}) => {
-    const x1 = cols[0]*cs, y1 = rows[0]*cs;
-    const w  = (cols[1]-cols[0]+1)*cs, h = (rows[1]-rows[0]+1)*cs;
-    const cx = x1+w/2, cy = y1+h/2, r = Math.min(w,h)*0.38;
-    ctx.save();
-    ctx.fillStyle = hex + '22';
-    ctx.strokeStyle = hex + '55';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI*2);
-    ctx.fill(); ctx.stroke();
-    ctx.restore();
-  });
-
-  // Draw centre finish square
-  const cx6 = 6*cs, cy6 = 6*cs, sz3 = 3*cs;
-  const grd = ctx.createLinearGradient(cx6,cy6,cx6+sz3,cy6+sz3);
-  grd.addColorStop(0,'rgba(248,113,113,.25)');
-  grd.addColorStop(0.33,'rgba(96,165,250,.25)');
-  grd.addColorStop(0.66,'rgba(74,222,128,.25)');
-  grd.addColorStop(1,'rgba(251,191,36,.25)');
-  ctx.fillStyle = grd;
-  ctx.fillRect(cx6, cy6, sz3, sz3);
-
-  // Draw pieces on board
-  COLORS.forEach(color => {
-    pieces[color].forEach((piece, pIdx) => {
-      let r, c;
-      if (piece.pos === -1) {
-        [r,c] = HOME_BASE_POS[color][pIdx];
-      } else if (piece.done) {
-        // Place in centre based on player
-        const offsets = {red:[6.4,6.4+pIdx*0.45],blue:[6.4+pIdx*0.45,8.1],green:[8.1,8.1-pIdx*0.45],yellow:[8.1-pIdx*0.45,6.4]};
-        [r,c] = offsets[color];
-        const px = c*cs, py = r*cs;
-        ctx.save();
-        ctx.fillStyle = PLAYER_HEX[color];
-        ctx.shadowColor = PLAYER_HEX[color]; ctx.shadowBlur = 8;
-        ctx.beginPath(); ctx.arc(px, py, cs*0.28, 0, Math.PI*2); ctx.fill();
-        ctx.restore();
-        return;
-      } else if (piece.pos < 52) {
-        [r,c] = OUTER[piece.pos];
-      } else {
-        [r,c] = HOME_COLS[color][piece.pos - 52];
-      }
-
-      const px = c*cs + cs/2;
-      const py = r*cs + cs/2;
-      const pieceR = cs*0.34;
-
-      ctx.save();
-      // Shadow/glow for active player's pieces
-      if (COLORS[curPlayer] === color && rolled) {
-        const canM = canMove(color, pIdx, diceVal);
-        ctx.shadowColor = canM ? PLAYER_HEX[color] : 'transparent';
-        ctx.shadowBlur  = canM ? 10 : 0;
-      }
-      // Outer ring
-      ctx.fillStyle = '#1a1a2e';
-      ctx.beginPath(); ctx.arc(px, py, pieceR+2, 0, Math.PI*2); ctx.fill();
-      // Piece fill
-      ctx.fillStyle = PLAYER_HEX[color];
-      ctx.beginPath(); ctx.arc(px, py, pieceR, 0, Math.PI*2); ctx.fill();
-      // Highlight
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
-      ctx.beginPath(); ctx.arc(px-pieceR*0.28, py-pieceR*0.28, pieceR*0.38, 0, Math.PI*2); ctx.fill();
-      // Piece number
-      ctx.fillStyle = '#fff';
-      ctx.font = `900 ${Math.round(cs*0.3)}px Nunito,sans-serif`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(pIdx+1, px, py+1);
-      ctx.restore();
-    });
-  });
-}
-
-/* ── Canvas click → piece selection ── */
-canvas.addEventListener('click', e => {
-  if (!rolled || gameOver) return;
-  const rect  = canvas.getBoundingClientRect();
-  const scaleX = canvas.width  / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const mx = (e.clientX - rect.left) * scaleX;
-  const my = (e.clientY - rect.top)  * scaleY;
-  const cs = getCellSize();
-  const color = COLORS[curPlayer];
-
-  pieces[color].forEach((piece, idx) => {
-    if (!canMove(color, idx, diceVal)) return;
-    let r, c;
-    if (piece.pos === -1)    [r,c] = HOME_BASE_POS[color][idx];
-    else if (piece.pos < 52) [r,c] = OUTER[piece.pos];
-    else                     [r,c] = HOME_COLS[color][piece.pos-52];
-    const px = c*cs+cs/2, py = r*cs+cs/2;
-    if (Math.hypot(mx-px, my-py) < cs*0.5) movePiece(color, idx);
-  });
-});
-
-/* ── Prevent game canvas from causing page swipe ── */
-canvas.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-
-/* ── Buttons ── */
-document.getElementById('btn-new').addEventListener('click', initGame);
-document.getElementById('btn-new-top').addEventListener('click', initGame);
-document.getElementById('btn-win-new').addEventListener('click', initGame);
-
-/* ── Init ── */
-COLORS.forEach(col => renderDiceSVG(col, 0));
-initGame();
-
-})();
-</script>
+  <script src="game.js"></script>
 </body>
 </html>
