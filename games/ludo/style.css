@@ -1,0 +1,160 @@
+/* slicegames/games/ludo/style.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overscroll-behavior: none; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #0d0d18; color: #e8e6ff;
+  min-height: 100dvh; display: flex; flex-direction: column;
+  align-items: center; padding: 16px 12px 48px;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+
+/* Back btn */
+.back-btn {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none; font-size: .82rem; font-weight: 800;
+  color: rgba(251,146,60,.8); margin-bottom: 8px; transition: color .15s;
+}
+.back-btn:hover { color: #fb923c; }
+
+/* MODE SCREEN */
+.mode-screen {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 18px; width: min(96vw, 480px); padding-top: 8px;
+}
+.mode-logo { font-size: 3.5rem; line-height: 1; }
+.mode-title { font-size: 2.4rem; font-weight: 900; color: #fb923c; text-shadow: 0 0 30px rgba(251,146,60,.4); letter-spacing: -.02em; }
+.mode-sub { font-size: .9rem; font-weight: 600; color: rgba(232,230,255,.5); }
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+.mode-btn {
+  background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 18px; padding: 18px 12px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  transition: transform .18s cubic-bezier(.34,1.2,.64,1), border-color .18s, box-shadow .18s;
+  color: #e8e6ff;
+}
+.mode-btn:hover { transform: translateY(-3px) scale(1.02); border-color: rgba(251,146,60,.5); box-shadow: 0 8px 24px rgba(251,146,60,.2); }
+.mode-btn:active { transform: scale(.97); }
+.mode-icon { font-size: 2rem; line-height: 1; }
+.mode-name { font-size: 1rem; font-weight: 900; color: #fff; }
+.mode-desc { font-size: .72rem; font-weight: 600; color: rgba(232,230,255,.45); text-align: center; }
+
+/* GAME SCREEN */
+.game-screen { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 10px; }
+
+.game-topbar {
+  width: min(96vw, 500px); display: flex;
+  align-items: center; justify-content: space-between;
+}
+.back-to-menu {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  color: #e8e6ff; border-radius: 10px; padding: 6px 12px;
+  font-family: 'Nunito', sans-serif; font-size: .8rem; font-weight: 800;
+  cursor: pointer; transition: .15s;
+}
+.back-to-menu:active { transform: scale(.95); }
+.game-title { font-size: 1.4rem; font-weight: 900; color: #fb923c; letter-spacing: -.02em; }
+.btn-icon-sm {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  color: #e8e6ff; border-radius: 10px; width: 34px; height: 34px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .15s;
+}
+.btn-icon-sm:active { transform: scale(.92); }
+
+/* ARENA — board + 4 corner dice */
+.arena {
+  position: relative;
+  width: min(96vw, 500px);
+  height: min(96vw, 500px);
+}
+
+/* Dice corner zones */
+.dice-zone {
+  position: absolute; width: 88px; height: 88px;
+  background: rgba(255,255,255,.05);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(255,255,255,.09);
+  border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  transition: border-color .2s, box-shadow .2s;
+  padding: 6px 4px;
+}
+.dz-tl { top: 0; left: 0; }
+.dz-tr { top: 0; right: 0; }
+.dz-br { bottom: 0; right: 0; }
+.dz-bl { bottom: 0; left: 0; }
+
+.dice-zone.is-active { border-color: var(--pc); box-shadow: 0 0 0 2px var(--pc), 0 0 20px color-mix(in srgb, var(--pc) 40%, transparent); }
+.dice-zone.is-cpu    { opacity: .75; }
+
+.dz-label { font-size: .58rem; font-weight: 900; text-transform: uppercase; letter-spacing: .07em; color: var(--pc, rgba(232,230,255,.6)); }
+.dz-face  { cursor: default; transition: transform .15s; }
+.dice-zone.is-active .dz-face { cursor: pointer; }
+.dice-zone.is-active .dz-face:hover { transform: scale(1.1); }
+.dz-status { font-size: .58rem; font-weight: 800; color: rgba(232,230,255,.4); text-align: center; line-height: 1.2; }
+.dice-zone.is-active .dz-status { color: var(--pc, #e8e6ff); }
+
+/* Dice roll animation */
+@keyframes diceRoll {
+  0%   { transform: rotate(0)   scale(1); }
+  25%  { transform: rotate(18deg) scale(1.12); }
+  50%  { transform: rotate(-14deg) scale(.92); }
+  75%  { transform: rotate(10deg)  scale(1.08); }
+  100% { transform: rotate(0)   scale(1); }
+}
+.rolling { animation: diceRoll .4s cubic-bezier(.36,.07,.19,.97); }
+
+/* Board canvas in centre */
+.board-wrap {
+  position: absolute;
+  top: 96px; left: 96px; right: 96px; bottom: 96px;
+}
+#board-canvas { width: 100%; height: 100%; display: block; border-radius: 6px; }
+
+/* Log */
+.log-box {
+  width: min(96vw, 500px);
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px; padding: 10px 16px; min-height: 42px;
+  display: flex; align-items: center;
+}
+#log-text { font-size: .84rem; font-weight: 700; color: rgba(232,230,255,.65); line-height: 1.4; }
+
+/* WIN OVERLAY */
+.win-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(13,13,24,.9); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  z-index: 50; align-items: center; justify-content: center;
+}
+.win-overlay.show { display: flex; }
+.win-card {
+  background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.14);
+  border-radius: 24px; padding: 36px 28px; text-align: center;
+  display: flex; flex-direction: column; gap: 12px; align-items: center;
+  max-width: 300px; width: 90vw; box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  animation: popIn .3s cubic-bezier(.34,1.2,.64,1);
+}
+@keyframes popIn { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.win-big   { font-size: 3.5rem; line-height: 1; }
+.win-card h2 { font-size: 1.8rem; font-weight: 900; color: #fff; }
+.win-card p  { font-size: .88rem; color: rgba(232,230,255,.55); font-weight: 600; }
+.btn-primary {
+  width: 100%; background: linear-gradient(135deg,#92400e,#fb923c);
+  color: #fff; border: none; border-radius: 12px; padding: 11px 0;
+  font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 900;
+  cursor: pointer; box-shadow: 0 4px 18px rgba(251,146,60,.3); transition: .15s;
+}
+.btn-primary:active { transform: scale(.97); }
+.btn-secondary {
+  width: 100%; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+  color: #e8e6ff; border-radius: 12px; padding: 11px 0;
+  font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 900;
+  cursor: pointer; transition: .15s;
+}
+.btn-secondary:active { transform: scale(.97); }
+
+@media (max-width: 380px) {
+  .dice-zone { width: 76px; height: 76px; }
+  .board-wrap { top: 84px; left: 84px; right: 84px; bottom: 84px; }
+}
