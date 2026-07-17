@@ -143,7 +143,8 @@ function initGame() {
   resizeCanvas();
   updateAllDiceUI();
   setLog(`${LABEL[curPlayer()]} goes first! 🎲 Tap their dice!`);
-  draw();
+  if (rafId) cancelAnimationFrame(rafId);
+  drawLoop();
   schedCPU();
 }
 
@@ -205,22 +206,23 @@ function movePiece(col, idx) {
 
   const p = pieces[col][idx];
   let msg = '';
+  const rolledVal = diceVal; // capture before we reset it
   let extraTurn = false;
 
   if (p.pos === -1) {
-    // Exit base
+    // Exit base — needed a 6
     p.pos = 0;
     msg = `${LABEL[col]} piece ${idx+1} enters the board! 🎉`;
-    extraTurn = true; // 6 was rolled to exit
+    extraTurn = true;
   } else {
-    const newPos = p.pos + diceVal;
+    const newPos = p.pos + rolledVal;
     p.pos = newPos;
     if (newPos >= 57) {
       p.pos  = 57;
       p.done = true;
       msg = `${LABEL[col]} piece ${idx+1} reached home! 🏁`;
     } else {
-      msg = `${LABEL[col]} piece ${idx+1} moves ${diceVal} steps.`;
+      msg = `${LABEL[col]} piece ${idx+1} moves ${rolledVal} steps.`;
       // Capture check (only on outer path)
       if (p.pos < 52) {
         const [pr, pc2] = pathCell(col, p.pos);
@@ -550,7 +552,6 @@ document.querySelector('.back-btn').addEventListener('click', () => cancelAnimat
 window.addEventListener('resize', () => { resizeCanvas(); draw(); });
 
 /* ── BOOT ─────────────────────────────────────────────────── */
-// Show mode screen on load — no game yet
-drawLoop();
+// drawLoop starts inside initGame — no game yet so just draw static board
 
 })();
