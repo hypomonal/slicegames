@@ -1,6 +1,6 @@
 // anigames/sw.js
 
-const CACHE = 'anigames-v5';
+const CACHE = 'anigames-v6';
 const ASSETS = [
   './', './index.html', './style.css', './hub.js',
   './manifest.json', './icon-192.svg', './icon-512.svg',
@@ -55,4 +55,3 @@ self.addEventListener('fetch', e => {
     )
   );
 });
-
