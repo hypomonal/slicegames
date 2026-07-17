@@ -1,0 +1,133 @@
+/* slicegames/games/minesweeper/style.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overscroll-behavior: none; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #0d0d18; color: #e8e6ff;
+  min-height: 100dvh; display: flex; flex-direction: column;
+  align-items: center; padding: 18px 16px 48px;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.back-btn {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none; font-size: .82rem; font-weight: 800;
+  color: rgba(248,113,113,.8); margin-bottom: 10px; transition: color .15s;
+}
+.back-btn:hover { color: #f87171; }
+.topbar {
+  width: min(96vw, 480px); display: flex;
+  justify-content: space-between; align-items: center; margin-bottom: 12px;
+}
+.title {
+  font-size: 1.8rem; font-weight: 900; color: #f87171;
+  text-shadow: 0 0 24px rgba(248,113,113,.35); letter-spacing: -.02em;
+}
+.btn-icon {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  color: #e8e6ff; border-radius: 10px; width: 38px; height: 38px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .15s;
+}
+.btn-icon:active { transform: scale(.92); }
+
+/* Stat bar */
+.stat-bar {
+  width: min(96vw, 480px); display: flex; gap: 10px; margin-bottom: 12px;
+}
+.stat-box {
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 14px; padding: 8px 12px; flex: 1; text-align: center;
+}
+.stat-lbl { font-size: .55rem; font-weight: 700; color: rgba(232,230,255,.4); text-transform: uppercase; letter-spacing: .07em; }
+.stat-val { font-size: 1.2rem; font-weight: 900; }
+
+/* Difficulty pills */
+.diff-pills {
+  width: min(96vw, 480px); display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.diff-pill {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  color: rgba(232,230,255,.65); border-radius: 999px; padding: 6px 14px;
+  font-family: 'Nunito', sans-serif; font-size: .82rem; font-weight: 800;
+  cursor: pointer; transition: all .16s; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.diff-pill:hover { background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.3); color: #fff; }
+.diff-pill.active {
+  background: linear-gradient(135deg,#7f1d1d,#f87171);
+  border-color: transparent; color: #fff; box-shadow: 0 0 16px rgba(248,113,113,.3);
+}
+
+/* Board */
+.board-wrap {
+  overflow: auto; max-width: min(96vw, 480px);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.07);
+  touch-action: none;
+}
+table { border-collapse: collapse; background: #060c18; display: block; }
+td {
+  width: 30px; height: 30px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.06);
+  text-align: center; vertical-align: middle;
+  font-size: .88rem; font-weight: 900; cursor: pointer;
+  transition: background .1s; position: relative;
+}
+td:not(.open):hover { background: rgba(255,255,255,.12); }
+td.open { background: rgba(255,255,255,.03); cursor: default; }
+td.mine-hit { background: rgba(248,113,113,.35) !important; }
+td.flagged  { background: rgba(255,255,255,.06); }
+td[data-n="1"] { color: #60a5fa; }
+td[data-n="2"] { color: #4ade80; }
+td[data-n="3"] { color: #f87171; }
+td[data-n="4"] { color: #a78bfa; }
+td[data-n="5"] { color: #fb923c; }
+td[data-n="6"] { color: #38bdf8; }
+td[data-n="7"] { color: #e8e6ff; }
+td[data-n="8"] { color: rgba(232,230,255,.5); }
+
+/* How to play */
+.howto {
+  width: min(96vw, 480px); margin-top: 16px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px; padding: 16px 18px;
+}
+.howto-title {
+  font-size: .72rem; font-weight: 900; color: rgba(232,230,255,.45);
+  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px;
+}
+.howto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.howto-item { display: flex; align-items: flex-start; gap: 10px; }
+.howto-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.2; }
+.howto-text { font-size: .78rem; font-weight: 600; color: rgba(232,230,255,.6); line-height: 1.45; }
+.howto-text strong { color: rgba(232,230,255,.9); font-weight: 800; }
+@media (max-width: 380px) { .howto-grid { grid-template-columns: 1fr; } }
+
+/* Result overlay */
+.result-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(13,13,24,.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  z-index: 50; align-items: center; justify-content: center;
+}
+.result-overlay.show { display: flex; }
+.result-card {
+  background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.12);
+  border-radius: 22px; padding: 32px; text-align: center;
+  display: flex; flex-direction: column; gap: 12px; align-items: center;
+  max-width: 300px; width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  animation: popIn .3s cubic-bezier(.34,1.2,.64,1);
+}
+@keyframes popIn { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.result-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+.result-card h2 { font-size: 1.7rem; font-weight: 900; color: #fff; }
+.result-card p  { font-size: .88rem; color: rgba(232,230,255,.55); font-weight: 600; }
+.btn-primary {
+  background: linear-gradient(135deg,#7f1d1d,#f87171);
+  color: #fff; border: none; border-radius: 12px; padding: 11px 28px;
+  font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 900;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 18px rgba(248,113,113,.3); transition: .15s;
+}
+.btn-primary:active { transform: scale(.96); }
