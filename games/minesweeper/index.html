@@ -1,402 +1,85 @@
-<!-- anigames/games/minesweeper/index.html -->
+<!-- slicegames/games/minesweeper/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Minesweeper · AniGames</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
-<style>
-/* anigames/games/minesweeper/index.html — inline styles */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overscroll-behavior:none}
-body{
-  font-family:'Nunito',sans-serif;background:#0d0d18;color:#e8e6ff;
-  min-height:100dvh;display:flex;flex-direction:column;align-items:center;
-  padding:18px 16px 48px;user-select:none;-webkit-tap-highlight-color:transparent;
-}
-.back-btn{
-  align-self:flex-start;display:inline-flex;align-items:center;gap:6px;
-  text-decoration:none;font-size:.82rem;font-weight:800;
-  color:rgba(248,113,113,.8);margin-bottom:10px;transition:color .15s;
-}
-.back-btn:hover{color:#f87171}
-.topbar{width:min(96vw,460px);display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.title{font-size:1.9rem;font-weight:900;color:#f87171;text-shadow:0 0 24px rgba(248,113,113,.35);letter-spacing:-.02em}
-.btn-icon{
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-  color:#e8e6ff;border-radius:10px;width:38px;height:38px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;
-}
-.btn-icon:active{transform:scale(.92)}
-/* Stat bar */
-.stat-bar{width:min(96vw,460px);display:flex;gap:10px;margin-bottom:12px}
-.stat-box{
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
-  backdrop-filter:blur(12px);border-radius:14px;padding:8px 12px;flex:1;text-align:center;
-}
-.stat-box .lbl{font-size:.55rem;font-weight:700;color:rgba(232,230,255,.4);text-transform:uppercase;letter-spacing:.07em}
-.stat-box .val{font-size:1.2rem;font-weight:900}
-/* Difficulty pills */
-.diff-pills{width:min(96vw,460px);display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.diff-pill{
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-  color:rgba(232,230,255,.65);border-radius:999px;padding:6px 16px;
-  font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;
-  transition:all .16s;white-space:nowrap;display:flex;align-items:center;gap:6px;
-}
-.diff-pill:hover{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3);color:#fff}
-.diff-pill.active{background:linear-gradient(135deg,#7f1d1d,#f87171);border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(248,113,113,.3)}
-/* Board */
-.board-wrap{
-  overflow:auto;max-width:min(96vw,460px);
-  border-radius:14px;
-  box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.07);
-  touch-action:none; /* prevent page scroll when touching the board */
-}
-table{border-collapse:collapse;background:#080d18;display:block}
-td{
-  width:32px;height:32px;border:1px solid rgba(255,255,255,.06);
-  background:rgba(255,255,255,.06);
-  text-align:center;vertical-align:middle;
-  font-size:.9rem;font-weight:900;cursor:pointer;
-  transition:background .1s;
-}
-td:not(.open):hover{background:rgba(255,255,255,.12)}
-td.open{background:rgba(255,255,255,.03);cursor:default}
-td.mine-hit{background:rgba(248,113,113,.35)}
-td.flagged{background:rgba(255,255,255,.06)}
-td[data-n="1"]{color:#60a5fa}td[data-n="2"]{color:#4ade80}
-td[data-n="3"]{color:#f87171}td[data-n="4"]{color:#a78bfa}
-td[data-n="5"]{color:#fb923c}td[data-n="6"]{color:#38bdf8}
-td[data-n="7"]{color:#f0e6ff}td[data-n="8"]{color:rgba(232,230,255,.5)}
-/* How to play panel */
-.howto{
-  width:min(96vw,460px);margin-top:16px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-radius:16px;padding:16px 18px;
-}
-.howto-title{
-  font-size:.72rem;font-weight:900;color:rgba(232,230,255,.5);
-  text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;
-}
-.howto-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.howto-item{display:flex;align-items:flex-start;gap:10px}
-.howto-icon{font-size:1.3rem;flex-shrink:0;line-height:1.2}
-.howto-text{font-size:.78rem;font-weight:600;color:rgba(232,230,255,.6);line-height:1.45}
-.howto-text strong{color:rgba(232,230,255,.9);font-weight:800}
-@media(max-width:380px){.howto-grid{grid-template-columns:1fr}}
-/* Result overlay */
-.result-overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(13,13,24,.9);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  z-index:50;align-items:center;justify-content:center;
-}
-.result-overlay.show{display:flex}
-.result-card{
-  background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);
-  border-radius:22px;padding:32px;text-align:center;
-  display:flex;flex-direction:column;gap:14px;align-items:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.5);max-width:300px;width:90vw;
-}
-.result-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center}
-.result-card h2{font-size:1.7rem;font-weight:900;color:#fff}
-.result-card p{font-size:.88rem;color:rgba(232,230,255,.55);font-weight:600}
-.btn{
-  background:linear-gradient(135deg,#7f1d1d,#f87171);
-  color:#fff;border:none;border-radius:12px;padding:11px 28px;
-  font-family:'Nunito',sans-serif;font-size:1rem;font-weight:900;
-  cursor:pointer;box-shadow:0 4px 18px rgba(248,113,113,.3);
-  display:flex;align-items:center;gap:8px;transition:.15s;
-}
-.btn:active{transform:scale(.96)}
-.hint{
-  margin-top:10px;font-size:.74rem;color:rgba(232,230,255,.3);
-  font-weight:600;text-align:center;width:min(96vw,460px);
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Minesweeper 💣 · SliceGames</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<a class="back-btn" href="../../index.html">
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-  AniGames
-</a>
-
-<div class="topbar">
-  <div class="title">💣 Minesweeper</div>
-  <button class="btn-icon" id="btn-restart-top" aria-label="Restart">
-    <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-      <path d="M1.5 8.5a7 7 0 017-7 7 7 0 015 2.1M15.5 8.5a7 7 0 01-7 7 7 7 0 01-5-2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <path d="M13 1v3.5h-3M4 16v-3.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <a class="back-btn" href="../../index.html">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-  </button>
-</div>
+    SliceGames
+  </a>
 
-<div class="stat-bar">
-  <div class="stat-box">
-    <div class="lbl">💣 Mines Left</div>
-    <div class="val" id="mines-left">0</div>
-  </div>
-  <div class="stat-box">
-    <div class="lbl">⏱️ Time</div>
-    <div class="val" id="timer">0s</div>
-  </div>
-  <div class="stat-box">
-    <div class="lbl">🏆 Best</div>
-    <div class="val" id="best">—</div>
-  </div>
-</div>
-
-<div class="diff-pills">
-  <button class="diff-pill active" data-diff="easy">
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M4 7s.8 2 2.5 2S9 7 9 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="4.5" cy="5" r=".8" fill="currentColor"/><circle cx="8.5" cy="5" r=".8" fill="currentColor"/></svg>
-    Easy
-  </button>
-  <button class="diff-pill" data-diff="medium">
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M4 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="4.5" cy="5" r=".8" fill="currentColor"/><circle cx="8.5" cy="5" r=".8" fill="currentColor"/></svg>
-    Medium
-  </button>
-  <button class="diff-pill" data-diff="hard">
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 8.5s.5-1.5 2-1.5 2 1.5 2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="4.5" cy="5" r=".8" fill="currentColor"/><circle cx="8.5" cy="5" r=".8" fill="currentColor"/></svg>
-    Hard
-  </button>
-</div>
-
-<div class="board-wrap" id="board-wrap">
-  <table id="table"></table>
-</div>
-
-<!-- How to play -->
-<div class="howto">
-  <div class="howto-title">📖 How to Play</div>
-  <div class="howto-grid">
-    <div class="howto-item">
-      <div class="howto-icon">👆</div>
-      <div class="howto-text"><strong>Click / Tap</strong> a cell to reveal it</div>
-    </div>
-    <div class="howto-item">
-      <div class="howto-icon">🚩</div>
-      <div class="howto-text"><strong>Right-click</strong> or <strong>long press</strong> to place a flag</div>
-    </div>
-    <div class="howto-item">
-      <div class="howto-icon">🔢</div>
-      <div class="howto-text">Numbers show how many <strong>mines</strong> are in adjacent cells</div>
-    </div>
-    <div class="howto-item">
-      <div class="howto-icon">💣</div>
-      <div class="howto-text">Click a mine and it's <strong>game over</strong>! First click is always safe</div>
-    </div>
-    <div class="howto-item">
-      <div class="howto-icon">🏆</div>
-      <div class="howto-text">Reveal all safe cells to <strong>win</strong>!</div>
-    </div>
-    <div class="howto-item">
-      <div class="howto-icon">⬜</div>
-      <div class="howto-text">Blank cells <strong>auto-expand</strong> — no adjacent mines nearby</div>
-    </div>
-  </div>
-</div>
-
-<div class="result-overlay" id="result-overlay">
-  <div class="result-card">
-    <div class="result-icon" id="result-icon"></div>
-    <h2 id="result-title">You Win!</h2>
-    <p id="result-msg">Well played!</p>
-    <button class="btn" id="btn-play-again">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.5 8a6.5 6.5 0 016.5-6.5 6.5 6.5 0 014.6 1.9M14.5 8a6.5 6.5 0 01-6.5 6.5 6.5 6.5 0 01-4.6-1.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M12.5 1v3h-3M3.5 15v-3h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Play Again
+  <div class="topbar">
+    <h1 class="title">Minesweeper 💣</h1>
+    <button class="btn-icon" id="btn-restart" aria-label="Restart">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M1.5 8a6.5 6.5 0 016.5-6.5 6.5 6.5 0 014.6 1.9M14.5 8a6.5 6.5 0 01-6.5 6.5 6.5 6.5 0 01-4.6-1.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        <path d="M12.5 1v3h-3M3.5 15v-3h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </button>
   </div>
-</div>
 
-<script>
-// anigames/games/minesweeper/index.html — game script
-(() => {
-  const DIFFS = {
-    easy:   { r:9,  c:9,  m:10 },
-    medium: { r:16, c:16, m:40 },
-    hard:   { r:16, c:30, m:99 },
-  };
+  <!-- Stat bar -->
+  <div class="stat-bar">
+    <div class="stat-box"><div class="stat-lbl">💣 Mines</div><div class="stat-val" id="mines-left">0</div></div>
+    <div class="stat-box"><div class="stat-lbl">⏱️ Time</div><div class="stat-val" id="timer">0s</div></div>
+    <div class="stat-box"><div class="stat-lbl">🏆 Best</div><div class="stat-val" id="best">—</div></div>
+  </div>
 
-  let diff='easy', rows, cols, mines;
-  let board, revealed, flagged, mineSet;
-  let started, done, timerVal, timerInt;
+  <!-- Difficulty pills -->
+  <div class="diff-pills">
+    <button class="diff-pill active" data-diff="easy">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M4 8s.8 2 2.5 2S9 8 9 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="4.5" cy="5" r=".8" fill="currentColor"/><circle cx="8.5" cy="5" r=".8" fill="currentColor"/></svg>
+      Easy 9×9
+    </button>
+    <button class="diff-pill" data-diff="medium">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M4 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="4.5" cy="5" r=".8" fill="currentColor"/><circle cx="8.5" cy="5" r=".8" fill="currentColor"/></svg>
+      Medium 16×16
+    </button>
+    <button class="diff-pill" data-diff="hard">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 8.5s.5-1.5 2-1.5 2 1.5 2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="4.5" cy="5" r=".8" fill="currentColor"/><circle cx="8.5" cy="5" r=".8" fill="currentColor"/></svg>
+      Hard 16×30
+    </button>
+  </div>
 
-  const tableEl      = document.getElementById('table');
-  const boardWrap    = document.getElementById('board-wrap');
-  const minesLeftEl  = document.getElementById('mines-left');
-  const timerEl      = document.getElementById('timer');
-  const bestEl       = document.getElementById('best');
-  const resultOv     = document.getElementById('result-overlay');
-  const resultTitle  = document.getElementById('result-title');
-  const resultMsg    = document.getElementById('result-msg');
-  const resultIcon   = document.getElementById('result-icon');
+  <!-- Board -->
+  <div class="board-wrap" id="board-wrap">
+    <table id="table"></table>
+  </div>
 
-  function getBest() { return localStorage.getItem(`ms-best-${diff}`); }
-  function setBest(v){ localStorage.setItem(`ms-best-${diff}`, v); }
+  <!-- How to play -->
+  <div class="howto">
+    <div class="howto-title">📖 How to Play</div>
+    <div class="howto-grid">
+      <div class="howto-item"><div class="howto-icon">👆</div><div class="howto-text"><strong>Click / Tap</strong> to reveal a cell</div></div>
+      <div class="howto-item"><div class="howto-icon">🚩</div><div class="howto-text"><strong>Right-click / Long-press</strong> to flag a mine</div></div>
+      <div class="howto-item"><div class="howto-icon">🔢</div><div class="howto-text">Numbers show <strong>adjacent mines</strong></div></div>
+      <div class="howto-item"><div class="howto-icon">💣</div><div class="howto-text"><strong>First click</strong> is always safe!</div></div>
+      <div class="howto-item"><div class="howto-icon">⬜</div><div class="howto-text">Blank cells <strong>auto-expand</strong></div></div>
+      <div class="howto-item"><div class="howto-icon">🏆</div><div class="howto-text">Reveal all safe cells to <strong>win!</strong></div></div>
+    </div>
+  </div>
 
-  function init() {
-    const d = DIFFS[diff];
-    rows=d.r; cols=d.c; mines=d.m;
-    board    = Array.from({length:rows}, () => Array(cols).fill(0));
-    revealed = Array.from({length:rows}, () => Array(cols).fill(false));
-    flagged  = Array.from({length:rows}, () => Array(cols).fill(false));
-    mineSet  = new Set();
-    started=false; done=false; timerVal=0;
-    clearInterval(timerInt);
-    timerEl.textContent = '0s';
-    minesLeftEl.textContent = mines;
-    const b = getBest();
-    bestEl.textContent = b ? b+'s' : '—';
-    resultOv.classList.remove('show');
-    buildTable();
-  }
+  <!-- Result overlay -->
+  <div class="result-overlay" id="result-overlay">
+    <div class="result-card">
+      <div class="result-icon" id="result-icon"></div>
+      <h2 id="result-title">You Win!</h2>
+      <p id="result-msg">Well played!</p>
+      <button class="btn-primary" id="btn-play-again">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 7.5a6 6 0 016-6 6 6 0 014 1.5M13.5 7.5a6 6 0 01-6 6 6 6 0 01-4-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11.5 1.5v3h-3M3.5 13.5v-3h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Play Again
+      </button>
+    </div>
+  </div>
 
-  function neighbors(r,c) {
-    const out=[];
-    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
-      if(dr===0&&dc===0) continue;
-      const nr=r+dr, nc=c+dc;
-      if(nr>=0&&nr<rows&&nc>=0&&nc<cols) out.push([nr,nc]);
-    }
-    return out;
-  }
-
-  function placeMines(sr,sc) {
-    while (mineSet.size < mines) {
-      const r=Math.floor(Math.random()*rows), c=Math.floor(Math.random()*cols);
-      if (Math.abs(r-sr)<=1&&Math.abs(c-sc)<=1) continue;
-      const key=r+','+c;
-      if (mineSet.has(key)) continue;
-      mineSet.add(key); board[r][c]=-1;
-    }
-    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
-      if(board[r][c]===-1) continue;
-      board[r][c] = neighbors(r,c).filter(([nr,nc])=>board[nr][nc]===-1).length;
-    }
-  }
-
-  function reveal(r,c) {
-    if(revealed[r][c]||flagged[r][c]) return;
-    revealed[r][c]=true;
-    if(board[r][c]===0) neighbors(r,c).forEach(([nr,nc])=>reveal(nr,nc));
-    renderCell(r,c);
-  }
-
-  function buildTable() {
-    tableEl.innerHTML='';
-    for(let r=0;r<rows;r++) {
-      const tr=document.createElement('tr');
-      for(let c=0;c<cols;c++) {
-        const td=document.createElement('td');
-        td.dataset.r=r; td.dataset.c=c;
-        td.addEventListener('click', onReveal);
-        td.addEventListener('contextmenu', e => { e.preventDefault(); onFlag(r,c); });
-        // Long press to flag on mobile
-        let pressTimer;
-        td.addEventListener('touchstart', () => { pressTimer = setTimeout(()=>onFlag(r,c), 550); }, {passive:true});
-        td.addEventListener('touchend',   () => clearTimeout(pressTimer), {passive:true});
-        td.addEventListener('touchmove',  () => clearTimeout(pressTimer), {passive:true});
-        tr.appendChild(td);
-      }
-      tableEl.appendChild(tr);
-    }
-  }
-
-  function getCell(r,c) { return tableEl.rows[r]&&tableEl.rows[r].cells[c]; }
-
-  // Mine SVG for revealed mines
-  const MINE_SVG = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="4" fill="#f87171"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M3.2 12.8l1.4-1.4M11.4 4.6l1.4-1.4" stroke="#f87171" stroke-width="1.4" stroke-linecap="round"/></svg>`;
-  // Flag SVG
-  const FLAG_SVG = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 13V2M3 2l8 3-8 3" fill="#fb923c" stroke="#fb923c" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
-
-  function renderCell(r,c) {
-    const td = getCell(r,c); if(!td) return;
-    if (flagged[r][c]) { td.innerHTML=FLAG_SVG; td.className='flagged'; return; }
-    if (!revealed[r][c]) { td.innerHTML=''; td.className=''; return; }
-    if (board[r][c]===-1) { td.innerHTML=MINE_SVG; td.className='open mine'; return; }
-    td.className='open';
-    if (board[r][c]>0) { td.textContent=board[r][c]; td.dataset.n=board[r][c]; }
-    else td.textContent='';
-  }
-
-  function onReveal() {
-    if (done) return;
-    const r=+this.dataset.r, c=+this.dataset.c;
-    if (flagged[r][c]||revealed[r][c]) return;
-    if (!started) {
-      started=true;
-      placeMines(r,c);
-      timerInt = setInterval(()=>{ timerVal++; timerEl.textContent=timerVal+'s'; }, 1000);
-    }
-    if (board[r][c]===-1) {
-      revealed[r][c]=true; renderCell(r,c);
-      this.classList.add('mine-hit');
-      revealAll(); boom(); return;
-    }
-    reveal(r,c); checkWin();
-  }
-
-  function onFlag(r,c) {
-    if(done||revealed[r][c]) return;
-    flagged[r][c]=!flagged[r][c];
-    const count = [].concat(...flagged).filter(Boolean).length;
-    minesLeftEl.textContent = mines - count;
-    renderCell(r,c);
-  }
-
-  function revealAll() {
-    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) { revealed[r][c]=true; renderCell(r,c); }
-  }
-
-  function checkWin() {
-    const total = rows*cols;
-    const revCount = [].concat(...revealed).filter(Boolean).length;
-    if (revCount === total - mines) {
-      done=true; clearInterval(timerInt);
-      const b=getBest();
-      if(!b||timerVal<+b) { setBest(timerVal); bestEl.textContent=timerVal+'s'; }
-      showResult(true);
-    }
-  }
-
-  function boom() {
-    done=true; clearInterval(timerInt);
-    showResult(false);
-  }
-
-  function showResult(win) {
-    resultIcon.innerHTML = win
-      ? `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 16l8 8 12-12" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-      : MINE_SVG.replace('16','32').replace('16','32');
-    resultIcon.style.background = win ? 'rgba(74,222,128,.15)' : 'rgba(248,113,113,.15)';
-    resultTitle.textContent = win ? '🎉 You Win!' : '💥 Boom!';
-    resultMsg.textContent = win ? '🏆 Cleared in ' + timerVal + 's!' : '😵 You hit a mine!';
-    resultOv.classList.add('show');
-  }
-
-  // Prevent board touch from scrolling the page
-  boardWrap.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-
-  // Difficulty pills
-  document.querySelectorAll('.diff-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('.diff-pill').forEach(p=>p.classList.remove('active'));
-      pill.classList.add('active');
-      diff = pill.dataset.diff;
-      init();
-    });
-  });
-
-  document.getElementById('btn-restart-top').addEventListener('click', init);
-  document.getElementById('btn-play-again').addEventListener('click', init);
-
-  init();
-})();
-</script>
+  <script src="game.js"></script>
 </body>
 </html>
